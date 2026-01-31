@@ -410,6 +410,20 @@ task-master next
 
 **原則: 「見る」はCLIで自分で、「変える」はClaudeに頼む。**
 
+#### GUIで確認する方法
+
+CLIよりビジュアルに全体を把握したい場合、以下のツールが `.taskmaster/tasks.json` をリアルタイム監視してカンバンボード等で表示する。
+
+| ツール | 起動方法 | 特徴 |
+|--------|---------|------|
+| [Task Studio](https://github.com/udecode/task-studio) | `npx task-studio@latest` → http://localhost:5565 | Web UIでカンバンボード＋リスト表示。ドラッグ&ドロップでステータス変更。tasks.jsonのリアルタイム監視 |
+| [Taskmaster AI VS Code拡張](https://marketplace.visualstudio.com/items?itemName=Hamster.task-master-hamster) | VS Code Marketplaceからインストール | VS Code内にカンバンボード。ドラッグ&ドロップ対応 |
+| [Taskboard](https://github.com/shokks/taskboard) | GitHubからセットアップ | リアルタイム更新のカンバンダッシュボード |
+
+**推奨: Task Studio** — `npx` 一発で起動。ブラウザで常時開いておけば、15分バトルリズムのダッシュボードになる。全Claudeの作業状態がカンバンで一目瞭然。
+
+> 注: Linear, Jira, Notion等の外部PMツールとの直接連携は現時点ではない。Task Masterはtasks.jsonによる自己完結型。
+
 #### 監督フェーズ: 状態の一元管理
 
 15分バトルリズムで確認するとき、自分のターミナルで:
