@@ -480,30 +480,6 @@ Task Masterのタスクデータは `.taskmaster/tasks/tasks.json` に保存さ�
 - 依存関係があるタスクは先行タスク完了後に投入する
 - Task Masterの `tasks.json` が全Claudeの共有状態になる
 
-## tmuxによるエスカレーション検知
-
-Claude Codeは実行中スピナー等で常に出力がある。出力が止まる＝エスカレーション（質問待ち）またはタスク完了。`monitor-silence` でこれを検知する。
-
-### 仕組み
-
-```bash
-# ~/.tmux.conf に追加
-set-window-option -g monitor-silence 60
-set-option -g visual-silence on
-set-window-option -g window-status-silence-style 'bg=colour220,fg=black'
-```
-
-- 60秒間出力がないペインのウィンドウが、ステータスバー上で **黄色にハイライト** される
-- 別のウィンドウで作業していても、ステータスバーを見れば「どのウィンドウが対応を待っている」かわかる
-- Claude実行中はスピナー等で出力が続くため、誤検知が少ない
-
-### 監督の動き
-
-1. 複数ウィンドウで各Claudeを起動
-2. 自分は任意のウィンドウで作業
-3. ステータスバーが黄色になったウィンドウを発見 → 切り替えて対応
-4. 対応後、Claudeが再稼働すれば出力が再開し、ハイライトは自動で消える
-
 ## 作業ディレクトリの原則
 
 - 各Claudeは同じプロジェクトルートで起動する（Task Masterのタスクファイルを共有するため）
