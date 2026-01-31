@@ -480,6 +480,65 @@ Task Masterのタスクデータは `.taskmaster/tasks/tasks.json` に保存さ�
 - 依存関係があるタスクは先行タスク完了後に投入する
 - Task Masterの `tasks.json` が全Claudeの共有状態になる
 
+## tmux × Claude Hooksによるペイン状態の視覚化
+
+Claude Codeのフック機能を使い、**Claudeが応答待ちのペインの背景色を自動で変える**。巡回時に一瞥でどのペインが対応を待っているかわかる。
+
+### 仕組み
+
+- **`Stop` フック**: Claudeが応答を完了しユーザー入力待ちになった瞬間 → ペイン背景を黄色に
+- **`UserPromptSubmit` フック**: ユーザーが入力を送った瞬間 → ペイン背景をデフォルトに戻す
+
+### 設定（`~/.claude/settings.json`）
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tmux select-pane -P 'bg=colour058' 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tmux select-pane -P 'bg=default' 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 見え方（4ペイン並列時）
+
+```
+┌──────────────┬──────────────┐
+│   ペイン0    │   ペイン1    │
+│   通常色     │   黄色       │
+│  (実行中)    │ (入力待ち)   │
+├──────────────┼──────────────┤
+│   ペイン2    │   ペイン3    │
+│   黄色       │   通常色     │
+│ (入力待ち)   │  (実行中)    │
+└──────────────┴──────────────┘
+→ ペイン1とペイン3に切り替えて対応すればいい
+```
+
+- 黄色 = エスカレーションまたはタスク完了。監督の対応が必要
+- 通常色 = Claudeが稼働中。放置でいい
+- tmux外で実行しても `2>/dev/null || true` でエラーにならない
+
 ## 作業ディレクトリの原則
 
 - 各Claudeは同じプロジェクトルートで起動する（Task Masterのタスクファイルを共有するため）
