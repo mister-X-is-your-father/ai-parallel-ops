@@ -500,7 +500,7 @@ Claude Codeのフック機能を使い、**Claudeが応答待ちのペインの�
         "hooks": [
           {
             "type": "command",
-            "command": "tmux select-pane -P 'bg=colour058' 2>/dev/null || true"
+            "command": "tmux select-pane -t $TMUX_PANE -P 'bg=colour058' 2>/dev/null || true"
           }
         ]
       }
@@ -511,7 +511,7 @@ Claude Codeのフック機能を使い、**Claudeが応答待ちのペインの�
         "hooks": [
           {
             "type": "command",
-            "command": "tmux select-pane -P 'bg=default' 2>/dev/null || true"
+            "command": "tmux select-pane -t $TMUX_PANE -P 'bg=default' 2>/dev/null || true"
           }
         ]
       }
