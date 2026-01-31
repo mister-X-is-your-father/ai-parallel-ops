@@ -375,9 +375,49 @@ Claude Code上で `parse-prd` を実行すれば、段取りフェーズの3（T
 - 依存関係が解消されたタスクだけが `next-task` に出てくる
 - 完了したら自動的に次が取れる。監督がいちいち指示しなくていい
 
+#### 人間が直接確認・修正する方法
+
+Task MasterにはCLIがある。Claudeに頼まなくても、自分のターミナルから直接操作できる。
+
+```bash
+# タスク一覧を確認（サブタスク付き）
+task-master list all --with-subtasks
+
+# 特定ステータスのタスクだけ見る
+task-master list in-progress
+task-master list pending
+
+# タスクの詳細を見る
+task-master show <タスクID>
+
+# ステータスを変更する（レビュー後にdoneにする等）
+task-master set-status <タスクID> done
+task-master set-status <タスクID> blocked
+
+# 次にやるべきタスクを確認
+task-master next
+```
+
+**監督の使い分け:**
+
+| 操作 | 方法 | 理由 |
+|------|------|------|
+| 全体状況の確認 | CLI `task-master list` | 自分で即座に見える。Claudeを待たなくていい |
+| タスクの承認・差し戻し | CLI `task-master set-status` | 判断は人間がやる。Claudeを介す必要なし |
+| タスクの内容修正 | Claude Codeに依頼 | JSONの手編集は面倒。Claudeに「タスク3の内容を○○に変えろ」が楽 |
+| 新規タスク追加 | Claude Codeに依頼 | 依存関係の整合性をClaude側で保ってもらう |
+| 依存関係の変更 | Claude Codeに依頼 | 同上 |
+
+**原則: 「見る」はCLIで自分で、「変える」はClaudeに頼む。**
+
 #### 監督フェーズ: 状態の一元管理
 
-15分バトルリズムで確認するとき:
+15分バトルリズムで確認するとき、自分のターミナルで:
+```bash
+task-master list all --with-subtasks
+```
+
+またはClaude Codeに:
 ```
 「get-tasksで全タスクの状態を見せろ」
 ```
