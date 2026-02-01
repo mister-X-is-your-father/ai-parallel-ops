@@ -126,48 +126,49 @@ tmux source-file ~/.tmux.conf
 
 Claude Hooksは `settings.json` を保存すれば次回のClaude Code起動から有効。既に起動中のセッションにも即反映される。
 
-## 2段目ステータスバー: チートシート
+## ステータスバー: 3段構成
 
-ステータスバーを2段にし、下段にtmuxキーバインドのチートシートを常時表示する。`~/.tmux.conf` の以下の行で設定:
-
-```bash
-set -g status 2
-set -g status-format[1] '#[align=left,bg=colour236,fg=colour248] | split-h  - split-v  d detach  z zoom  x kill  [ copy  q quit-copy  arrows move  C-b+arrows resize  :setw sync on/off'
-```
-
-- `set -g status 2` でステータスバーを2行に拡張
-- `status-format[1]` が2段目（0始まり）の内容。表示するキーバインドは自由に変更可能
-- 全て `C-b`（prefix）の後に押すキー
-
-## Claude Code 起動コマンド
-
-### 通常起動
+`~/.tmux.conf` でステータスバーを3段に拡張し、エイリアスのチートシートを常時表示する:
 
 ```bash
-claude
+set -g status 3
+set -g status-format[1] '#[align=left,bg=colour236,fg=colour248] cc-n: 新規+自律  cc-r: 再開+自律  cc-c: 継続+自律  |  -m付き(cc-n-m等): 手動確認モード'
+set -g status-format[2] '#[align=left,bg=colour237,fg=colour244] 全て claude-chill -a 0 経由  |  cc でヒント表示'
 ```
 
-### claude-chill経由（フリッカー防止プロキシ）
+- 1段目: セッション名 + 日時（デフォルト）
+- 2段目: エイリアス一覧
+- 3段目: 補足情報
+
+## Claude Code 起動エイリアス
+
+`~/.bashrc` に定義。全て `claude-chill -a 0`（ちらつき防止+自動スクロールバック無効）経由。
 
 ```bash
-# 通常
-claude-chill claude
-
-# auto-lookback無効（15秒ごとの履歴表示を止める）
-claude-chill -a 0 claude
+alias cc='echo "cc-n: 新規+自律  cc-r: 再開+自律  cc-c: 継続+自律  cc-n-m: 新規+手動  cc-r-m: 再開+手動  cc-c-m: 継続+手動"'
+alias cc-n='claude-chill -a 0 claude --dangerously-skip-permissions'
+alias cc-r='claude-chill -a 0 claude -r --dangerously-skip-permissions'
+alias cc-c='claude-chill -a 0 claude -c --dangerously-skip-permissions'
+alias cc-n-m='claude-chill -a 0 claude'
+alias cc-r-m='claude-chill -a 0 claude -r'
+alias cc-c-m='claude-chill -a 0 claude -c'
 ```
+
+| エイリアス | 内容 |
+|---|---|
+| `cc` | ヒント表示 |
+| `cc-n` | 新規セッション+自律実行 |
+| `cc-r` | セッション選んで再開+自律実行 |
+| `cc-c` | 直近の会話を継続+自律実行 |
+| `cc-n-m` | 新規セッション+手動確認 |
+| `cc-r-m` | セッション選んで再開+手動確認 |
+| `cc-c-m` | 直近の会話を継続+手動確認 |
+
+### 命名規則
+
+- `cc` = Claude Chill
+- `-n` = New / `-r` = Resume / `-c` = Continue
+- `-m` = Manual（手動確認モード）
+- `-m` なし = 自律実行（`--dangerously-skip-permissions`）
 
 詳細は [flicker-prevention.md](flicker-prevention.md) を参照。
-
-### よく使うオプション
-
-```bash
-# セッション再開（前回の続き）
-claude --resume
-
-# プロンプトを直接渡して実行
-claude -p "やりたいこと"
-
-# 自律モード（確認なしで実行。信頼できるタスク向け）
-claude --dangerously-skip-permissions
-```
