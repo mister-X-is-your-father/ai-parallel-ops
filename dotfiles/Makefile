@@ -68,38 +68,73 @@ attach:
 
 # Internal: Split selection menu
 _split_menu:
-	@existing=$$(tmux list-sessions -F '$(HASH)S' 2>/dev/null); \
+	@i=1; \
+	existing=$$(tmux list-sessions -F '$(HASH)S' 2>/dev/null); \
 	if [ -n "$$existing" ]; then \
 		echo "  [Existing Sessions]"; \
-		i=1; for s in $$existing; do \
-			echo "    $$i) $$s"; \
+		for s in $$existing; do \
+			wins=$$(tmux list-windows -t "$$s" -F '$(HASH){window_index}:$(HASH){window_name}$(HASH){window_flags}' 2>/dev/null | tr '\n' ' '); \
+			echo "    $$i) [$$s] $$wins"; \
 			i=$$((i+1)); \
 		done; \
 		echo ""; \
-		echo "    s) Browse sessions (choose-tree)"; \
-		echo ""; \
-		echo "  [New Session]"; \
-		echo "    n) Create new session"; \
-		echo ""; \
-		read -p "Enter number, 's', or 'n': " choice; \
-		if [ "$$choice" = "n" ] || [ "$$choice" = "N" ]; then \
-			$(MAKE) _new_session_menu; \
-		elif [ "$$choice" = "s" ] || [ "$$choice" = "S" ]; then \
-			tmp_session="tmp-chooser-$$$$"; \
-			tmux new-session -d -s $$tmp_session; \
-			tmux set-option -t $$tmp_session destroy-unattached on; \
-			tmux send-keys -t $$tmp_session "tmux choose-tree -s" Enter; \
-			tmux attach-session -t $$tmp_session; \
-		elif [ -n "$$choice" ]; then \
-			sel=$$(echo "$$existing" | sed -n "$${choice}p"); \
-			if [ -n "$$sel" ]; then \
-				tmux attach-session -t "$$sel"; \
-			else \
-				echo "Invalid selection"; \
-			fi; \
+	fi; \
+	existing_count=$$((i-1)); \
+	echo "  [New Session]"; \
+	yaml_sessions=$$(yq '.sessions[].name' $(CONFIG) 2>/dev/null | tr -d '"'); \
+	for s in $$yaml_sessions; do \
+		cmd=$$(yq ".sessions[] | select(.name == \"$$s\") | .command" $(CONFIG) | tr -d '"'); \
+		if [ "$$cmd" = "" ] || [ "$$cmd" = "null" ]; then \
+			echo "    $$i) $$s (shell)"; \
+		else \
+			echo "    $$i) $$s"; \
 		fi; \
+		i=$$((i+1)); \
+	done; \
+	yaml_count=$$((i-1-existing_count)); \
+	echo ""; \
+	echo "  [Project Directories]"; \
+	excludes=$$(yq '.exclude[]' $(CONFIG) 2>/dev/null | tr -d '"'); \
+	dirs=$$(ls -d ~/*/ 2>/dev/null | xargs -n1 basename | grep -vxF "$$excludes"); \
+	for d in $$dirs; do \
+		echo "    $$i) $$d"; \
+		i=$$((i+1)); \
+	done; \
+	echo ""; \
+	echo "   99) [NEW] Create new project"; \
+	if [ -n "$$existing" ]; then \
+		echo "    s) Browse sessions (choose-tree)"; \
+	fi; \
+	echo ""; \
+	read -p "Enter number: " choice; \
+	if [ -z "$$choice" ]; then exit 0; fi; \
+	if [ "$$choice" = "99" ]; then \
+		$(MAKE) _create_repo; \
+	elif [ "$$choice" = "s" ] || [ "$$choice" = "S" ]; then \
+		if [ -n "$$TMUX" ]; then \
+			tmux choose-tree -s; \
+		else \
+			tmux attach-session; \
+		fi; \
+	elif [ $$choice -le $$existing_count ] 2>/dev/null; then \
+		sel=$$(echo "$$existing" | sed -n "$${choice}p"); \
+		if [ -n "$$sel" ]; then \
+			tmux attach-session -t "$$sel"; \
+		else \
+			echo "Invalid selection"; \
+		fi; \
+	elif [ $$choice -le $$((existing_count + yaml_count)) ] 2>/dev/null; then \
+		adj=$$((choice - existing_count)); \
+		sel=$$(echo "$$yaml_sessions" | sed -n "$${adj}p"); \
+		$(MAKE) _launch NAME=$$sel; \
 	else \
-		$(MAKE) _new_session_menu; \
+		adj=$$((choice - existing_count - yaml_count)); \
+		sel=$$(echo "$$dirs" | sed -n "$${adj}p"); \
+		if [ -n "$$sel" ]; then \
+			$(MAKE) _new_session_menu SESSION_NAME=$$sel; \
+		else \
+			echo "Invalid selection"; \
+		fi; \
 	fi
 
 # Internal: New session split menu
@@ -114,8 +149,9 @@ _new_session_menu:
 	echo ""; \
 	read -p "Enter number [1/2.1/2.2/3/4]: " split_num; \
 	if [ -z "$$split_num" ]; then split_num=1; fi; \
+	sname="$(SESSION_NAME)"; \
 	case $$split_num in \
-		1) $(MAKE) _menu ;; \
+		1) if [ -n "$$sname" ]; then $(MAKE) _launch NAME=$$sname; else $(MAKE) _menu; fi ;; \
 		2.1) $(MAKE) _multi_session SPLIT=2h ;; \
 		2.2) $(MAKE) _multi_session SPLIT=2v ;; \
 		3) $(MAKE) _multi_session SPLIT=3 ;; \
