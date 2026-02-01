@@ -67,7 +67,7 @@ Claudeが停止（質問・完了）するとペイン背景が赤に変わり�
         "hooks": [
           {
             "type": "command",
-            "command": "tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000' 2>/dev/null || true"
+            "command": "tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00' 2>/dev/null || true"
           }
         ]
       }
@@ -78,7 +78,7 @@ Claudeが停止（質問・完了）するとペイン背景が赤に変わり�
         "hooks": [
           {
             "type": "command",
-            "command": "tmux set-option -t $TMUX_PANE -p window-style 'bg=default' 2>/dev/null || true"
+            "command": "tmux set-option -t $TMUX_PANE -pu window-style && tmux set-option -t $TMUX_PANE -pu window-active-style 2>/dev/null || true"
           }
         ]
       }
@@ -87,22 +87,35 @@ Claudeが停止（質問・完了）するとペイン背景が赤に変わり�
 }
 ```
 
+### ポイント: 活性/非活性スタイルの両方を設定する
+
+単に `window-style` だけを上書きすると、tmuxのグローバルな活性/非活性の切り替えが効かなくなる。そのため:
+
+- **Stop時**: `window-style`（非活性用: 赤+グレー文字）と `window-active-style`（活性用: 赤+緑文字）の両方をペイン単位で設定
+- **UserPromptSubmit時**: `-pu` でペイン単位のオーバーライドを削除し、グローバル設定に戻す
+
+これにより、Claudeが停止したペインは赤背景になりつつ、別ペインを選択すると非活性色（赤+グレー文字）、そのペインを選択すると活性色（赤+緑文字）と正しく切り替わる。
+
 ### 見え方（4ペイン並列時）
 
 ```
 ┌──────────────┬──────────────┐
 │   ペイン0    │   ペイン1    │
-│   通常色     │   赤背景     │
+│   通常色     │ 赤+グレー文字│
 │  (実行中)    │ (入力待ち)   │
+│  [活性]      │  [非活性]    │
 ├──────────────┼──────────────┤
 │   ペイン2    │   ペイン3    │
-│   赤背景     │   通常色     │
+│ 赤+グレー文字│   通常色     │
 │ (入力待ち)   │  (実行中)    │
+│  [非活性]    │  [非活性]    │
 └──────────────┴──────────────┘
+→ ペイン1に切り替えると: 赤+緑文字（活性）に変わる
 ```
 
-- 赤 = Claudeが停止。エスカレーションまたはタスク完了。対応が必要
+- 赤背景 = Claudeが停止。エスカレーションまたはタスク完了。対応が必要
 - 通常色 = Claude稼働中。放置でいい
+- 非活性ペインはグレー文字、活性ペインは緑文字で区別できる
 - tmux外で実行しても `2>/dev/null || true` でエラーにならない
 
 ## 設定の反映
