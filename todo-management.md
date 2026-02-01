@@ -107,6 +107,27 @@ WSL2ではinotifyが不安定なため、そのままではリアルタイム更
 
 アクセスURL: `http://<Tailscale IP>:5565`（ステータスラインにも表示される）
 
+#### 複数プロジェクトの統合ダッシュボード
+
+Task Studioは1つの `.taskmaster/` しか監視できないが、`sync-tasks.sh` で複数プロジェクトのタスクをタグとして1つのtasks.jsonに集約できる。
+
+```bash
+# プロジェクトを登録
+./scripts/sync-tasks.sh --add ~/projects/my-web-app
+./scripts/sync-tasks.sh --add ~/projects/my-api
+
+# 登録済み一覧
+./scripts/sync-tasks.sh --list
+
+# 1回だけ同期
+./scripts/sync-tasks.sh
+
+# ファイル変更を監視して自動同期
+./scripts/sync-tasks.sh --watch
+```
+
+Task Studio上ではプロジェクト名がタグとして表示され、切り替えて閲覧できる。`setup-task-studio.sh` はプロジェクトが登録されていれば `--watch` を自動起動する。
+
 > 注: Linear, Jira, Notion等の外部PMツールとの直接連携は現時点ではない。Task Masterはtasks.jsonによる自己完結型。
 
 ### 監督フェーズ: 状態の一元管理

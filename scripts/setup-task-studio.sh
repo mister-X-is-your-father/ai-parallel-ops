@@ -84,6 +84,16 @@ for i in $(seq 1 10); do
     echo "Task Studio is running:"
     echo "  HTTP: http://$TS_IP:$PORT_HTTP"
     echo "  WS:   ws://$TS_IP:$PORT_WS"
+
+    # 複数プロジェクト同期（projects.jsonがあれば自動起動）
+    SYNC_SCRIPT="$(dirname "$0")/sync-tasks.sh"
+    PROJECTS_FILE="$(dirname "$0")/../.taskmaster/projects.json"
+    if [[ -x "$SYNC_SCRIPT" ]] && [[ -f "$PROJECTS_FILE" ]] && [[ "$(jq 'length' "$PROJECTS_FILE" 2>/dev/null)" -gt 0 ]]; then
+      echo "Starting multi-project sync..."
+      nohup "$SYNC_SCRIPT" --watch >/dev/null 2>&1 &
+      disown
+    fi
+
     exit 0
   fi
   sleep 1
