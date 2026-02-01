@@ -1,0 +1,10 @@
+sessions:
+  - name: general
+    dir: ~
+    command: ""
+  - name: claude-only
+    dir: ~
+    command: "claude -c --dangerously-skip-permissions"
+
+exclude:
+  - snap

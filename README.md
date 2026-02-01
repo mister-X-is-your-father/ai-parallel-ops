@@ -2,6 +2,25 @@
 
 Claude Code、Google Gemini（画像生成: Nano Banana等）など複数のAIツールを並列稼働させ、監督（ディレクター）として仕事を進めるためのワークフロー定義。
 
+## 前提: ホームディレクトリへのシンボリックリンク
+
+このリポジトリの `dotfiles/` 内のファイルをホームディレクトリにシンボリックリンクして使う。リポジトリ側を編集すれば即反映される。
+
+```bash
+# セッション管理（Makefile + sessions.yaml）
+ln -sf ~/ai-parallel-ops/dotfiles/Makefile ~/Makefile
+ln -sf ~/ai-parallel-ops/dotfiles/sessions.yaml ~/sessions.yaml
+
+# Claude Code hooks（tmuxペイン背景色の自動変更）
+ln -sf ~/ai-parallel-ops/dotfiles/claude-settings.json ~/.claude/settings.json
+
+# sessions.yaml は自分の環境に合わせて編集する
+# - sessions: YAML定義のセッション（shell-only等）
+# - exclude: `make claude` のメニューに表示しないディレクトリ
+```
+
+`make claude` でtmuxセッションの作成・選択・アタッチを対話的に行える。詳細は [tmux-setup.md](tmux-setup.md) 参照。
+
 ## ドキュメント
 
 - [flicker-prevention.md](flicker-prevention.md) - Claude Codeのフリッカー（画面ちらつき）防止対策とセットアップ
