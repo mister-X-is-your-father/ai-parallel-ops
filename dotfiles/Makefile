@@ -16,24 +16,15 @@ HASH := \#
 # Mode prompt snippet (reused in _launch and _multi_session)
 # Requires: source ~/ai-parallel-ops/dotfiles/claude-aliases.sh
 define ASK_MODE
-echo "Select mode:"; \
-echo "  n) cc-n   新規+自律 (default)"; \
-echo "  r) cc-r   再開+自律"; \
-echo "  c) cc-c   継続+自律"; \
-echo "  N) cc-n-m 新規+手動"; \
-echo "  R) cc-r-m 再開+手動"; \
-echo "  C) cc-c-m 継続+手動"; \
-echo "  s) shell only"; \
-echo ""; \
-read -p "Mode [n]: " _mode; \
+read -p "cc-r (再開+自律) でいい？ [Y/n/c/N/R/C/s]: " _mode; \
 case $$_mode in \
-	r) _cc_cmd="cc-r" ;; \
+	n) _cc_cmd="cc-n" ;; \
 	c) _cc_cmd="cc-c" ;; \
 	N) _cc_cmd="cc-n-m" ;; \
 	R) _cc_cmd="cc-r-m" ;; \
 	C) _cc_cmd="cc-c-m" ;; \
 	s) _cc_cmd="" ;; \
-	*) _cc_cmd="cc-n" ;; \
+	*) _cc_cmd="cc-r" ;; \
 esac
 endef
 
@@ -274,11 +265,12 @@ _multi_session:
 		yaml_entry=$$(yq ".sessions[] | select(.name == \"$$sel\")" $(CONFIG) 2>/dev/null); \
 		if [ -n "$$yaml_entry" ]; then \
 			dir=$$(echo "$$yaml_entry" | yq '.dir' | tr -d '"'); \
-			cmd=$$(echo "$$yaml_entry" | yq '.command' | tr -d '"'); \
+			yaml_cmd=$$(echo "$$yaml_entry" | yq '.command' | tr -d '"'); \
 			[ "$$dir" = "~" ] && dir=$$HOME; \
 			[ "$$dir" = "null" ] && dir=$$HOME; \
 			dir=$$(echo "$$dir" | sed "s|^~/|$$HOME/|"); \
-			[ "$$cmd" = "null" ] && cmd=""; \
+			[ "$$yaml_cmd" = "null" ] && yaml_cmd=""; \
+			if [ -z "$$yaml_cmd" ]; then cmd=""; else cmd="$$default_cmd"; fi; \
 		else \
 			dir=$$HOME/$$sel; \
 			cmd="$$default_cmd"; \
@@ -399,11 +391,17 @@ _launch:
 	yaml_entry=$$(yq ".sessions[] | select(.name == \"$$name\")" $(CONFIG) 2>/dev/null); \
 	if [ -n "$$yaml_entry" ]; then \
 		dir=$$(echo "$$yaml_entry" | yq '.dir' | tr -d '"'); \
-		cmd=$$(echo "$$yaml_entry" | yq '.command' | tr -d '"'); \
+		yaml_cmd=$$(echo "$$yaml_entry" | yq '.command' | tr -d '"'); \
 		[ "$$dir" = "~" ] && dir=$$HOME; \
 		[ "$$dir" = "null" ] && dir=$$HOME; \
 		dir=$$(echo "$$dir" | sed "s|^~/|$$HOME/|"); \
-		[ "$$cmd" = "null" ] && cmd=""; \
+		[ "$$yaml_cmd" = "null" ] && yaml_cmd=""; \
+		if [ -z "$$yaml_cmd" ]; then \
+			cmd=""; \
+		else \
+			$(ASK_MODE); \
+			cmd="$$_cc_cmd"; \
+		fi; \
 	else \
 		dir=$$HOME/$$name; \
 		if [ ! -d "$$dir" ]; then \
