@@ -4,7 +4,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "echo 'TODO:http://localhost:5565'"
+    "command": "IP=$(tailscale ip -4 2>/dev/null || echo localhost); echo TODO:http://$IP:5565"
   },
   "hooks": {
     "Stop": [
