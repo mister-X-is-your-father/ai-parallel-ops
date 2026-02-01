@@ -2,6 +2,10 @@
 
 Claude Code、Google Gemini（画像生成: Nano Banana等）など複数のAIツールを並列稼働させ、監督（ディレクター）として仕事を進めるためのワークフロー定義。
 
+## ドキュメント
+
+- [flicker-prevention.md](flicker-prevention.md) - Claude Codeのフリッカー（画面ちらつき）防止対策とセットアップ
+
 ## コンセプト
 
 - 自分は手を動かさない。複数のAIツールに委任し、判断とレビューに集中する
