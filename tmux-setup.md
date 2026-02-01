@@ -70,7 +70,7 @@ bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "cl
         "hooks": [
           {
             "type": "command",
-            "command": "if pgrep -f 'claude' -t $(tmux display-message -t $TMUX_PANE -p '#{pane_tty}' | sed 's|/dev/||') > /dev/null 2>&1; then tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00'; else tmux set-option -t $TMUX_PANE -pu window-style && tmux set-option -t $TMUX_PANE -pu window-active-style; fi 2>/dev/null || true"
+            "command": "tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00' 2>/dev/null || true"
           }
         ]
       }
@@ -90,14 +90,20 @@ bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "cl
 }
 ```
 
+`~/.bashrc` にシェル復帰時のリセット:
+
+```bash
+__reset_pane_color() { tmux set-option -t "$TMUX_PANE" -pu window-style && tmux set-option -t "$TMUX_PANE" -pu window-active-style; } 2>/dev/null
+PROMPT_COMMAND="__reset_pane_color;${PROMPT_COMMAND:+ $PROMPT_COMMAND}"
+```
+
 ### ポイント: 活性/非活性スタイルの両方を設定する
 
 単に `window-style` だけを上書きすると、tmuxのグローバルな活性/非活性の切り替えが効かなくなる。そのため:
 
-- **Stop時**: ペインのTTYでclaudeプロセスが生存しているか `pgrep` で判定
-  - 生存 → 赤色に設定（一時停止中 = 対応が必要）
-  - 不在 → `-pu` でペインオーバーライド削除（グローバルの活性/非活性スタイルに戻る）
+- **Stop時**: 常に赤色に設定
 - **UserPromptSubmit時**: 紺色で両方設定
+- **シェル復帰時**: `PROMPT_COMMAND` でペインオーバーライドを削除し通常色に戻る
 
 ### 見え方（4ペイン並列時）
 

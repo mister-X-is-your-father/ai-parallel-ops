@@ -141,3 +141,7 @@ alias cc-c='claude-chill -a 0 -- claude -c --dangerously-skip-permissions'
 alias cc-n-m='claude-chill -a 0 claude'
 alias cc-r-m='claude-chill -a 0 claude -r'
 alias cc-c-m='claude-chill -a 0 claude -c'
+
+# tmuxペイン色リセット: シェルプロンプト表示時にClaudeのhook色を解除
+__reset_pane_color() { tmux set-option -t "$TMUX_PANE" -pu window-style && tmux set-option -t "$TMUX_PANE" -pu window-active-style; } 2>/dev/null
+PROMPT_COMMAND="__reset_pane_color;${PROMPT_COMMAND:+ $PROMPT_COMMAND}"

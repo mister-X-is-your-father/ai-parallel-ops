@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if pgrep -f 'claude' -t $(tmux display-message -t $TMUX_PANE -p '#{pane_tty}' | sed 's|/dev/||') > /dev/null 2>&1; then tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00'; else tmux set-option -t $TMUX_PANE -pu window-style && tmux set-option -t $TMUX_PANE -pu window-active-style; fi 2>/dev/null || true"
+            "command": "tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00' 2>/dev/null || true"
           }
         ]
       }
