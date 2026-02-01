@@ -70,7 +70,7 @@ bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "cl
         "hooks": [
           {
             "type": "command",
-            "command": "tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00' 2>/dev/null || true"
+            "command": "if pgrep -f 'claude' -t $(tmux display-message -t $TMUX_PANE -p '#{pane_tty}' | sed 's|/dev/||') > /dev/null 2>&1; then tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00'; else tmux set-option -t $TMUX_PANE -pu window-style && tmux set-option -t $TMUX_PANE -pu window-active-style; fi 2>/dev/null || true"
           }
         ]
       }
@@ -94,8 +94,10 @@ bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "cl
 
 単に `window-style` だけを上書きすると、tmuxのグローバルな活性/非活性の切り替えが効かなくなる。そのため:
 
-- **Stop時**: `window-style`（非活性用: 赤+グレー文字）と `window-active-style`（活性用: 赤+緑文字）の両方をペイン単位で設定
-- **UserPromptSubmit時**: 同様に紺色で両方設定
+- **Stop時**: ペインのTTYでclaudeプロセスが生存しているか `pgrep` で判定
+  - 生存 → 赤色に設定（一時停止中 = 対応が必要）
+  - 不在 → `-pu` でペインオーバーライド削除（グローバルの活性/非活性スタイルに戻る）
+- **UserPromptSubmit時**: 紺色で両方設定
 
 ### 見え方（4ペイン並列時）
 
@@ -113,6 +115,7 @@ bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "cl
 
 - 紺色(`#000020`) = Claude処理中。放置でいい
 - 赤色(`#1a0000`) = Claude停止。対応が必要
+- 通常色 = Claudeが終了済み（`/exit`等）。グローバルの活性/非活性スタイルに戻る
 - 非活性ペインはグレー文字、活性ペインは緑文字で区別できる
 - tmux外で実行しても `2>/dev/null || true` でエラーにならない
 
