@@ -5,25 +5,64 @@
 # - JSバンドルのWebSocket URLをTailscale IPに書き換え
 #
 # Usage:
-#   ./scripts/setup-task-studio.sh        # セットアップ + 起動
-#   ./scripts/setup-task-studio.sh --kill  # 停止のみ
+#   ./scripts/setup-task-studio.sh                        # カレントディレクトリの.taskmasterで起動
+#   ./scripts/setup-task-studio.sh -d ~/projects/myapp    # 指定ディレクトリの.taskmasterで起動
+#   ./scripts/setup-task-studio.sh --kill                 # 停止のみ
 
 set -euo pipefail
 
 PORT_HTTP=5565
 PORT_WS=5566
+TARGET_DIR=""
 
 kill_existing() {
   fuser -k "$PORT_HTTP/tcp" "$PORT_WS/tcp" 2>/dev/null || true
   sleep 1
 }
 
-if [[ "${1:-}" == "--kill" ]]; then
-  echo "Stopping Task Studio..."
-  kill_existing
-  echo "Done."
-  exit 0
+# 引数パース
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --kill)
+      echo "Stopping Task Studio..."
+      kill_existing
+      echo "Done."
+      exit 0
+      ;;
+    -d|--dir)
+      TARGET_DIR="$2"
+      shift 2
+      ;;
+    *)
+      TARGET_DIR="$1"
+      shift
+      ;;
+  esac
+done
+
+# ターゲットディレクトリの解決
+if [[ -n "$TARGET_DIR" ]]; then
+  TARGET_DIR=$(realpath "$TARGET_DIR")
+  # .taskmasterが直接指定された場合とプロジェクトルートの場合の両方に対応
+  if [[ -d "$TARGET_DIR/.taskmaster" ]]; then
+    TASKMASTER_DIR="$TARGET_DIR/.taskmaster"
+  elif [[ "$(basename "$TARGET_DIR")" == ".taskmaster" ]] && [[ -d "$TARGET_DIR" ]]; then
+    TASKMASTER_DIR="$TARGET_DIR"
+  else
+    echo "ERROR: .taskmaster directory not found in $TARGET_DIR" >&2
+    exit 1
+  fi
+else
+  # デフォルト: カレントディレクトリ
+  TASKMASTER_DIR="$(pwd)/.taskmaster"
 fi
+
+if [[ ! -d "$TASKMASTER_DIR" ]]; then
+  echo "ERROR: $TASKMASTER_DIR does not exist" >&2
+  exit 1
+fi
+
+echo "Target: $TASKMASTER_DIR"
 
 # Tailscale IPの取得（なければlocalhost）
 TS_IP=$(tailscale ip -4 2>/dev/null || echo "localhost")
@@ -72,9 +111,9 @@ done
 # 既存プロセスを停止
 kill_existing
 
-# 起動
+# 起動（TASKMASTER_DIRを環境変数で渡す）
 echo "Starting Task Studio..."
-nohup npx task-studio@latest --no-open >/dev/null 2>&1 &
+TASKMASTER_DIR="$TASKMASTER_DIR" nohup npx task-studio@latest --no-open -d "$TASKMASTER_DIR" >/dev/null 2>&1 &
 disown
 
 # 起動待ち
@@ -84,6 +123,7 @@ for i in $(seq 1 10); do
     echo "Task Studio is running:"
     echo "  HTTP: http://$TS_IP:$PORT_HTTP"
     echo "  WS:   ws://$TS_IP:$PORT_WS"
+    echo "  Dir:  $TASKMASTER_DIR"
 
     # 複数プロジェクト同期（projects.jsonがあれば自動起動）
     SYNC_SCRIPT="$(dirname "$0")/sync-tasks.sh"
