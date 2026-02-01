@@ -88,6 +88,20 @@ CLIよりビジュアルに全体を把握したい場合、以下のツール�
 
 **推奨: Task Studio** — `npx` 一発で起動。ブラウザで常時開いておけば、15分バトルリズムのダッシュボードになる。全Claudeの作業状態がカンバンで一目瞭然。
 
+#### Task Studioの自動起動
+
+`dotfiles/.bashrc` にて、tmuxセッション内で初回シェル起動時にTask Studioを自動起動する設定が入っている。ポート5565が未使用の場合のみ起動する。
+
+```bash
+# .bashrc内の該当箇所
+if [ -n "$TMUX" ] && ! lsof -i :5565 -sTCP:LISTEN &>/dev/null; then
+  nohup npx task-studio@latest --no-open &>/dev/null &
+  disown
+fi
+```
+
+手動で起動する場合: `npx task-studio@latest` → http://localhost:5565
+
 > 注: Linear, Jira, Notion等の外部PMツールとの直接連携は現時点ではない。Task Masterはtasks.jsonによる自己完結型。
 
 ### 監督フェーズ: 状態の一元管理

@@ -142,6 +142,13 @@ alias cc-n-m='claude-chill -a 0 claude'
 alias cc-r-m='claude-chill -a 0 claude -r'
 alias cc-c-m='claude-chill -a 0 claude -c'
 
+# Task Studio (TODO kanban board)
+# tmux session内で未起動なら自動起動。http://localhost:5565
+if [ -n "$TMUX" ] && ! lsof -i :5565 -sTCP:LISTEN &>/dev/null; then
+  nohup npx task-studio@latest --no-open &>/dev/null &
+  disown
+fi
+
 # tmuxペイン色リセット: シェルプロンプト表示時にClaudeのhook色を解除
 __reset_pane_color() { tmux set-option -t "$TMUX_PANE" -pu window-style && tmux set-option -t "$TMUX_PANE" -pu window-active-style; } 2>/dev/null
 PROMPT_COMMAND="__reset_pane_color;${PROMPT_COMMAND:+ $PROMPT_COMMAND}"
