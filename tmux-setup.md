@@ -145,7 +145,12 @@ set -g status-format[2] '#[align=left,bg=colour237,fg=colour244] 全て claude-c
 `~/.bashrc` に定義。全て `claude-chill -a 0`（ちらつき防止+自動スクロールバック無効）経由。
 
 ```bash
-alias cc='echo "cc-n: 新規+自律  cc-r: 再開+自律  cc-c: 継続+自律  cc-n-m: 新規+手動  cc-r-m: 再開+手動  cc-c-m: 継続+手動"'
+alias cc='echo "cc-n:   新規+自律
+cc-r:   再開+自律
+cc-c:   継続+自律
+cc-n-m: 新規+手動
+cc-r-m: 再開+手動
+cc-c-m: 継続+手動"'
 alias cc-n='claude-chill -a 0 claude --dangerously-skip-permissions'
 alias cc-r='claude-chill -a 0 claude -r --dangerously-skip-permissions'
 alias cc-c='claude-chill -a 0 claude -c --dangerously-skip-permissions'
