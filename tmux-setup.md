@@ -140,7 +140,7 @@ Claude Hooksは `settings.json` を保存すれば次回のClaude Code起動か�
 ```bash
 set -g status 3
 set -g status-format[1] '#[align=left,bg=colour236,fg=colour248] cc-n: 新規+自律  cc-r: 再開+自律  cc-c: 継続+自律  |  -m付き(cc-n-m等): 手動確認モード'
-set -g status-format[2] '#[align=left,bg=colour237,fg=colour244] 全て claude-chill -a 0 経由  |  cc でヒント表示'
+set -g status-format[2] '#[align=left,bg=colour237,fg=colour244] cc でヒント表示'
 ```
 
 - 1段目: セッション名 + 日時（デフォルト）
