@@ -1,4 +1,12 @@
 {
+  "skills": {
+    "todo": {
+      "type": "prompt",
+      "path": "skills/todo/todo.md",
+      "description": "複数プロジェクト横断のTODO管理。status, next, add, done, sync, init などのサブコマンドを提供。",
+      "userInvocable": true
+    }
+  },
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": true
   },
