@@ -1,0 +1,65 @@
+{
+  "default": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "LP\u30da\u30fc\u30b8\u306e\u30d2\u30fc\u30ed\u30fc\u30bb\u30af\u30b7\u30e7\u30f3\u5b9f\u88c5",
+        "description": "\u30e1\u30a4\u30f3\u30d3\u30b8\u30e5\u30a2\u30eb\u3001\u30ad\u30e3\u30c3\u30c1\u30b3\u30d4\u30fc\u3001CTA\u30dc\u30bf\u30f3\u3092\u542b\u3080\u30d5\u30a1\u30fc\u30b9\u30c8\u30d3\u30e5\u30fc\u3092\u4f5c\u6210\u3002\u30e2\u30d0\u30a4\u30eb\u30d5\u30a1\u30fc\u30b9\u30c8\u3067\u30ec\u30b9\u30dd\u30f3\u30b7\u30d6\u5bfe\u5fdc\u3002",
+        "status": "in-progress",
+        "dependencies": [],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "API\u30a8\u30f3\u30c9\u30dd\u30a4\u30f3\u30c8\u306e\u8a8d\u8a3c\u5468\u308a\u4fee\u6b63",
+        "description": "JWT\u30c8\u30fc\u30af\u30f3\u306e\u6709\u52b9\u671f\u9650\u5207\u308c\u6642\u306b500\u3067\u306f\u306a\u304f401\u3092\u8fd4\u3059\u3088\u3046\u4fee\u6b63\u3002\u30ea\u30d5\u30ec\u30c3\u30b7\u30e5\u30c8\u30fc\u30af\u30f3\u306e\u30cf\u30f3\u30c9\u30ea\u30f3\u30b0\u3082\u78ba\u8a8d\u3002",
+        "status": "in-progress",
+        "dependencies": [],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "\u30c7\u30b6\u30a4\u30f3\u30c8\u30fc\u30af\u30f3\u306e\u5b9a\u7fa9",
+        "description": "\u30ab\u30e9\u30fc\u30d1\u30ec\u30c3\u30c8\u3001\u30bf\u30a4\u30dd\u30b0\u30e9\u30d5\u30a3\u3001\u30b9\u30da\u30fc\u30b7\u30f3\u30b0\u3092Figma\u304b\u3089\u62bd\u51fa\u3057\u3066CSS\u5909\u6570\u3068\u3057\u3066\u5b9a\u7fa9\u3002",
+        "status": "done",
+        "dependencies": [],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "\u30c7\u30fc\u30bf\u30d9\u30fc\u30b9\u30de\u30a4\u30b0\u30ec\u30fc\u30b7\u30e7\u30f3\u30b9\u30af\u30ea\u30d7\u30c8\u4f5c\u6210",
+        "description": "\u65e2\u5b58\u306eusers\u30c6\u30fc\u30d6\u30eb\u306bprofile_image\u30ab\u30e9\u30e0\u8ffd\u52a0\u3002\u30ed\u30fc\u30eb\u30d0\u30c3\u30af\u7528\u306edown\u30de\u30a4\u30b0\u30ec\u30fc\u30b7\u30e7\u30f3\u3082\u5fd8\u308c\u305a\u306b\u3002",
+        "status": "pending",
+        "dependencies": [2],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "\u7d50\u5408\u30c6\u30b9\u30c8\u306e\u8ffd\u52a0",
+        "description": "\u30e6\u30fc\u30b6\u30fc\u767b\u9332\u304b\u3089\u30ed\u30b0\u30a4\u30f3\u307e\u3067\u306eE2E\u30d5\u30ed\u30fc\u3092Playwright\u3067\u66f8\u304f\u3002CI\u306b\u3082\u7d44\u307f\u8fbc\u3080\u3002",
+        "status": "pending",
+        "dependencies": [2, 4],
+        "priority": "low",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "projectName": "ai-parallel-ops",
+      "version": "1.0.0"
+    }
+  }
+}

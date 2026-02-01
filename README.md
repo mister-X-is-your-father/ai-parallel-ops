@@ -8,6 +8,7 @@ Claude Code、Google Gemini（画像生成: Nano Banana等）など複数のAI�
 - [tmux-setup.md](tmux-setup.md) - tmux設定、2段ステータスバー（チートシート）、Claude Hooksによるペイン状態視覚化、Claude起動コマンド
 - [todo-management.md](todo-management.md) - TODO管理ツール（Task Master連携、Task Studio、CLI操作、PRDの書き方）
 - [dotfiles/](dotfiles/) - 実際の設定ファイル（`.tmux.conf`、`claude-settings.json`）。新環境へのセットアップ用
+- [scripts/](scripts/) - セットアップスクリプト（Task StudioのWSL2パッチ＆起動）
 
 ## コンセプト
 

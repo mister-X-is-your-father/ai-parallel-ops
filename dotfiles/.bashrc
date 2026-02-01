@@ -143,10 +143,13 @@ alias cc-r-m='claude-chill -a 0 claude -r'
 alias cc-c-m='claude-chill -a 0 claude -c'
 
 # Task Studio (TODO kanban board)
-# tmux session内で未起動なら自動起動。http://localhost:5565
+# tmux session内で未起動なら自動起動。セットアップスクリプトでWSL2パッチ適用済みで起動。
 if [ -n "$TMUX" ] && ! lsof -i :5565 -sTCP:LISTEN &>/dev/null; then
-  nohup npx task-studio@latest --no-open &>/dev/null &
-  disown
+  SCRIPT="$HOME/ai-parallel-ops/scripts/setup-task-studio.sh"
+  if [ -x "$SCRIPT" ]; then
+    "$SCRIPT" &>/dev/null &
+    disown
+  fi
 fi
 
 # tmuxペイン色リセット: シェルプロンプト表示時にClaudeのhook色を解除
