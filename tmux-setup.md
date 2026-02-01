@@ -126,20 +126,48 @@ tmux source-file ~/.tmux.conf
 
 Claude Hooksは `settings.json` を保存すれば次回のClaude Code起動から有効。既に起動中のセッションにも即反映される。
 
-## キーバインド早見表
+## 2段目ステータスバー: チートシート
 
-全て `C-b`（prefix）の後に押す。
+ステータスバーを2段にし、下段にtmuxキーバインドのチートシートを常時表示する。`~/.tmux.conf` の以下の行で設定:
 
-| キー | 動作 |
-|------|------|
-| `\|` | 横分割 |
-| `-` | 縦分割 |
-| `d` | デタッチ |
-| `z` | ペインをズーム（トグル） |
-| `x` | ペインを閉じる |
-| `[` | コピーモード開始 |
-| `q` | コピーモード終了 |
-| `矢印` | ペイン移動 |
-| `C-b + 矢印` | ペインリサイズ |
-| `:setw synchronize-panes on` | 全ペイン同時入力 |
-| `:setw synchronize-panes off` | 同時入力解除 |
+```bash
+set -g status 2
+set -g status-format[1] '#[align=left,bg=colour236,fg=colour248] | split-h  - split-v  d detach  z zoom  x kill  [ copy  q quit-copy  arrows move  C-b+arrows resize  :setw sync on/off'
+```
+
+- `set -g status 2` でステータスバーを2行に拡張
+- `status-format[1]` が2段目（0始まり）の内容。表示するキーバインドは自由に変更可能
+- 全て `C-b`（prefix）の後に押すキー
+
+## Claude Code 起動コマンド
+
+### 通常起動
+
+```bash
+claude
+```
+
+### claude-chill経由（フリッカー防止プロキシ）
+
+```bash
+# 通常
+claude-chill claude
+
+# auto-lookback無効（15秒ごとの履歴表示を止める）
+claude-chill -a 0 claude
+```
+
+詳細は [flicker-prevention.md](flicker-prevention.md) を参照。
+
+### よく使うオプション
+
+```bash
+# セッション再開（前回の続き）
+claude --resume
+
+# プロンプトを直接渡して実行
+claude -p "やりたいこと"
+
+# 自律モード（確認なしで実行。信頼できるタスク向け）
+claude --dangerously-skip-permissions
+```
