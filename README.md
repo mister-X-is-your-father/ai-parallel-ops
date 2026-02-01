@@ -5,7 +5,8 @@ Claude Code、Google Gemini（画像生成: Nano Banana等）など複数のAI�
 ## ドキュメント
 
 - [flicker-prevention.md](flicker-prevention.md) - Claude Codeのフリッカー（画面ちらつき）防止対策とセットアップ
-- [tmux-setup.md](tmux-setup.md) - tmux設定、2段ステータスバー、Claude Hooksによるペイン状態視覚化
+- [tmux-setup.md](tmux-setup.md) - tmux設定、2段ステータスバー（チートシート）、Claude Hooksによるペイン状態視覚化、Claude起動コマンド
+- [dotfiles/](dotfiles/) - 実際の設定ファイル（`.tmux.conf`、`claude-settings.json`）。新環境へのセットアップ用
 
 ## コンセプト
 
