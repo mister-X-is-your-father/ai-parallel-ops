@@ -28,6 +28,65 @@ case $$_mode in \
 esac
 endef
 
+# Branch selection prompt (reused in _launch and _multi_session)
+# Requires: $$dir to be set before calling
+# Sets: $$_git_cmd (empty if no change needed)
+define ASK_BRANCH
+if [ -d "$$dir/.git" ] || (cd "$$dir" 2>/dev/null && git rev-parse --git-dir >/dev/null 2>&1); then \
+	_current=$$(cd "$$dir" && git branch --show-current 2>/dev/null); \
+	_branches=$$(cd "$$dir" && git branch --format='%(refname:short)' 2>/dev/null); \
+	echo ""; \
+	echo "  Branch: $$_current  (current)"; \
+	echo ""; \
+	echo "  [Existing Branches]"; \
+	_bi=1; \
+	for _b in $$_branches; do \
+		if [ "$$_b" = "$$_current" ]; then \
+			echo "    $$_bi) $$_b *"; \
+		else \
+			echo "    $$_bi) $$_b"; \
+		fi; \
+		_bi=$$((_bi+1)); \
+	done; \
+	echo ""; \
+	echo "    n) Create new branch"; \
+	echo ""; \
+	read -p "  Select branch [Enter=stay]: " _bchoice; \
+	if [ "$$_bchoice" = "n" ]; then \
+		read -p "  Branch name: " _bname; \
+		if [ -n "$$_bname" ]; then \
+			echo "  Base branch:"; \
+			_bi=1; \
+			for _b in $$_branches; do \
+				if [ "$$_b" = "$$_current" ]; then \
+					echo "    $$_bi) $$_b *"; \
+				else \
+					echo "    $$_bi) $$_b"; \
+				fi; \
+				_bi=$$((_bi+1)); \
+			done; \
+			read -p "  Select base [1]: " _bbase; \
+			[ -z "$$_bbase" ] && _bbase=1; \
+			_base_branch=$$(echo "$$_branches" | sed -n "$${_bbase}p"); \
+			_git_cmd="git checkout -b $$_bname $$_base_branch"; \
+		else \
+			_git_cmd=""; \
+		fi; \
+	elif [ -n "$$_bchoice" ]; then \
+		_sel_branch=$$(echo "$$_branches" | sed -n "$${_bchoice}p"); \
+		if [ -n "$$_sel_branch" ] && [ "$$_sel_branch" != "$$_current" ]; then \
+			_git_cmd="git checkout $$_sel_branch"; \
+		else \
+			_git_cmd=""; \
+		fi; \
+	else \
+		_git_cmd=""; \
+	fi; \
+else \
+	_git_cmd=""; \
+fi
+endef
+
 .PHONY: claude general claude-only new ls kill attach _split_menu _new_session_menu _multi_session _menu _create_repo _launch
 
 # Main session launcher
@@ -169,24 +228,52 @@ _split_menu:
 
 # Internal: New session split menu
 _new_session_menu:
-	@echo "Select split count:"; \
-	echo ""; \
+	@existing=$$(tmux list-sessions -F '$(HASH)S' 2>/dev/null); \
+	if [ -n "$$existing" ]; then \
+		echo "  [Existing Sessions]"; \
+		_ei=1; \
+		for s in $$existing; do \
+			wins=$$(tmux list-windows -t "$$s" -F '$(HASH){window_index}:$(HASH){window_name}$(HASH){window_flags}' 2>/dev/null | tr '\n' ' '); \
+			echo "    $$_ei) [$$s] $$wins"; \
+			_ei=$$((_ei+1)); \
+		done; \
+		_existing_count=$$((_ei-1)); \
+		echo ""; \
+	else \
+		_existing_count=0; \
+	fi; \
+	echo "  [New Session]"; \
 	echo "  1) No split (single pane)"; \
 	echo "  2.1) 2-split (left | right)"; \
 	echo "  2.2) 2-split (top / bottom)"; \
 	echo "  3) 3-split (left | right-top / right-bottom)"; \
 	echo "  4) 4-split (2x2 grid)"; \
 	echo ""; \
-	read -p "Enter number [1/2.1/2.2/3/4]: " split_num; \
-	if [ -z "$$split_num" ]; then split_num=1; fi; \
-	case $$split_num in \
-		1) $(MAKE) _split_menu ;; \
-		2.1) $(MAKE) _multi_session SPLIT=2h ;; \
-		2.2) $(MAKE) _multi_session SPLIT=2v ;; \
-		3) $(MAKE) _multi_session SPLIT=3 ;; \
-		4) $(MAKE) _multi_session SPLIT=4 ;; \
-		*) echo "Invalid selection"; exit 1 ;; \
-	esac
+	if [ -n "$$existing" ]; then \
+		echo "    s) Browse sessions (choose-tree)"; \
+		echo ""; \
+	fi; \
+	read -p "Enter number: " _choice; \
+	if [ -z "$$_choice" ]; then _choice=1; fi; \
+	if [ "$$_choice" = "s" ] || [ "$$_choice" = "S" ]; then \
+		if [ -n "$$TMUX" ]; then \
+			tmux choose-tree -s; \
+		else \
+			tmux attach-session; \
+		fi; \
+	elif [ $$_existing_count -gt 0 ] && echo "$$_choice" | grep -qE '^[0-9]+$$' && [ "$$_choice" -le "$$_existing_count" ] 2>/dev/null; then \
+		sel=$$(echo "$$existing" | sed -n "$${_choice}p"); \
+		tmux attach-session -t "$$sel"; \
+	else \
+		case $$_choice in \
+			1) $(MAKE) _split_menu ;; \
+			2.1) $(MAKE) _multi_session SPLIT=2h ;; \
+			2.2) $(MAKE) _multi_session SPLIT=2v ;; \
+			3) $(MAKE) _multi_session SPLIT=3 ;; \
+			4) $(MAKE) _multi_session SPLIT=4 ;; \
+			*) echo "Invalid selection"; exit 1 ;; \
+		esac; \
+	fi
 
 # Internal: Multi-session with splits
 _multi_session:
@@ -276,7 +363,12 @@ _multi_session:
 			cmd="$$default_cmd"; \
 		fi; \
 		if [ $$first -eq 1 ]; then \
+			$(ASK_BRANCH); \
 			tmux new-session -d -s $$session_name -c "$$dir"; \
+			if [ -n "$$_git_cmd" ]; then \
+				tmux send-keys -t $$session_name "$$_git_cmd" Enter; \
+				sleep 1; \
+			fi; \
 			if [ -n "$$cmd" ]; then tmux send-keys -t $$session_name "$$cmd" Enter; fi; \
 			first=0; \
 		else \
@@ -411,8 +503,13 @@ _launch:
 		$(ASK_MODE); \
 		cmd="$$_cc_cmd"; \
 	fi; \
+	$(ASK_BRANCH); \
 	if tmux has-session -t $$name 2>/dev/null; then \
 		echo "Attaching to existing session: $$name"; \
+		if [ -n "$$_git_cmd" ]; then \
+			tmux send-keys -t $$name "cd $$dir && $$_git_cmd" Enter; \
+			sleep 1; \
+		fi; \
 		if [ -n "$$cmd" ]; then \
 			if ! tmux list-panes -t $$name -F '$(HASH){pane_current_command}' | grep -q claude; then \
 				tmux send-keys -t $$name "cd $$dir && $$cmd" Enter; \
@@ -421,6 +518,10 @@ _launch:
 	else \
 		echo "Creating new session: $$name"; \
 		tmux new-session -d -s $$name -c "$$dir"; \
+		if [ -n "$$_git_cmd" ]; then \
+			tmux send-keys -t $$name "$$_git_cmd" Enter; \
+			sleep 1; \
+		fi; \
 		if [ -n "$$cmd" ]; then \
 			tmux send-keys -t $$name "$$cmd" Enter; \
 		fi; \
