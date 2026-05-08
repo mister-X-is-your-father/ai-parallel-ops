@@ -1,0 +1,11 @@
+# Runtime data (ntfy cache, uploaded attachments, server config)
+cache/
+attachments/
+config/
+
+# Secrets
+.env
+topic.txt
+
+# Tailscale serve dump (network topology)
+tailscale-serve.json

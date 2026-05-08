@@ -1,0 +1,23 @@
+{
+  "_comment": "claude-notifications-go plugin の webhook 設定テンプレート。~/.claude/claude-notifications-go/config.json に配置し YOUR-HOST と YOUR-TOPIC を実値に置換すること。",
+  "notifications": {
+    "desktop": {
+      "enabled": false
+    },
+    "webhook": {
+      "enabled": true,
+      "preset": "",
+      "url": "http://localhost:8765/YOUR-TOPIC",
+      "format": "json",
+      "headers": {
+        "X-Message": "{{.message}}",
+        "X-Title": "{{.title}}",
+        "X-Priority": "3",
+        "X-Template": "yes"
+      }
+    },
+    "notifyOnSubagentStop": false,
+    "notifyOnTextResponse": true,
+    "respectJudgeMode": true
+  }
+}

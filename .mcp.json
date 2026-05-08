@@ -4,7 +4,7 @@
       "command": "npx",
       "args": ["-y", "task-master-ai"],
       "env": {
-        "PROJECT_ROOT": "/home/neo/ai-parallel-ops"
+        "PROJECT_ROOT": "/home/neo/claudeutil"
       }
     }
   }

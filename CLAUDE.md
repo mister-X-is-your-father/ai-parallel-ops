@@ -15,12 +15,12 @@ There are no build, test, or lint commands. The repository consists of:
 
 Symlink configuration files and source aliases:
 ```bash
-ln -sf ~/ai-parallel-ops/dotfiles/Makefile ~/Makefile
-ln -sf ~/ai-parallel-ops/dotfiles/sessions.yaml ~/sessions.yaml
-ln -sf ~/ai-parallel-ops/dotfiles/claude-settings.json ~/.claude/settings.json
+ln -sf ~/claudeutil/dotfiles/Makefile ~/Makefile
+ln -sf ~/claudeutil/dotfiles/sessions.yaml ~/sessions.yaml
+ln -sf ~/claudeutil/dotfiles/claude-settings.json ~/.claude/settings.json
 
 # Add to ~/.bashrc (claude-chill aliases: cc-n, cc-r, cc-c, cc-n-m, cc-r-m, cc-c-m)
-echo 'source ~/ai-parallel-ops/dotfiles/claude-aliases.sh' >> ~/.bashrc
+echo 'source ~/claudeutil/dotfiles/claude-aliases.sh' >> ~/.bashrc
 ```
 
 ## Architecture

@@ -1,5 +1,5 @@
 # Claude Code aliases (tmux alternate-screen off でスクロールバック保持)
-# Setup: echo 'source ~/ai-parallel-ops/dotfiles/claude-aliases.sh' >> ~/.bashrc
+# Setup: echo 'source ~/claudeutil/dotfiles/claude-aliases.sh' >> ~/.bashrc
 
 alias cc='echo "cc-n:   新規+自律
 cc-r:   再開+自律 (失敗時→新規)

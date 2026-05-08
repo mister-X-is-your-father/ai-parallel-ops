@@ -8,11 +8,11 @@ Claude Code、Google Gemini（画像生成: Nano Banana等）など複数のAI�
 
 ```bash
 # セッション管理（Makefile + sessions.yaml）
-ln -sf ~/ai-parallel-ops/dotfiles/Makefile ~/Makefile
-ln -sf ~/ai-parallel-ops/dotfiles/sessions.yaml ~/sessions.yaml
+ln -sf ~/claudeutil/dotfiles/Makefile ~/Makefile
+ln -sf ~/claudeutil/dotfiles/sessions.yaml ~/sessions.yaml
 
 # Claude Code hooks（tmuxペイン背景色の自動変更）
-ln -sf ~/ai-parallel-ops/dotfiles/claude-settings.json ~/.claude/settings.json
+ln -sf ~/claudeutil/dotfiles/claude-settings.json ~/.claude/settings.json
 
 # sessions.yaml は自分の環境に合わせて編集する
 # - sessions: YAML定義のセッション（shell-only等）
