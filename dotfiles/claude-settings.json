@@ -1,27 +1,34 @@
 {
-  "skills": {
-    "todo": {
-      "type": "prompt",
-      "path": "skills/todo/todo.md",
-      "description": "複数プロジェクト横断のTODO管理。status, next, add, done, sync, init などのサブコマンドを提供。",
-      "userInvocable": true
-    }
-  },
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "IP=$(tailscale ip -4 2>/dev/null || echo localhost); echo TODO:http://$IP:5565"
+  "permissions": {
+    "defaultMode": "auto"
   },
   "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "TTY=$(tmux display-message -p -t $TMUX_PANE '#{pane_tty}' 2>/dev/null) && printf '\\a' > $TTY"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/termux-notify.sh"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00' 2>/dev/null || true"
+            "command": "tmux set-option -t $TMUX_PANE -p window-style 'bg=#1a0000,fg=#aaaaaa' && tmux set-option -t $TMUX_PANE -p window-active-style 'bg=#1a0000,fg=#00ff00' 2>/dev/null || true; SN=$(tmux display-message -p -t $TMUX_PANE '#{session_name}' 2>/dev/null); TID=$(tmux show-environment -t $SN TASK_ID 2>/dev/null | cut -d= -f2); TPROJ=$(tmux show-environment -t $SN TASK_PROJECT 2>/dev/null | cut -d= -f2); [ -n \"$TID\" ] && [ -n \"$TPROJ\" ] && curl -s -X POST http://localhost:5570/api/tasks -H 'Content-Type: application/json' -d \"{\\\"project\\\":\\\"$TPROJ\\\",\\\"taskId\\\":$TID,\\\"status\\\":\\\"review\\\"}\" >/dev/null 2>&1 || true"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/termux-notify.sh"
           }
         ]
       }
@@ -37,5 +44,45 @@
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "supabase@claude-plugins-official": true,
+    "claude-notifications-go@claude-notifications-go": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-notifications-go": {
+      "source": {
+        "source": "github",
+        "repo": "777genius/claude-notifications-go"
+      }
+    }
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "skipAutoPermissionPrompt": true,
+  "skills": {
+    "todo": {
+      "type": "prompt",
+      "path": "skills/todo/todo.md",
+      "description": "複数プロジェクト横断のTODO管理。status, next, add, done, sync, init などのサブコマンドを提供。",
+      "userInvocable": true
+    }
+  },
+  "mcpServers": {
+    "task-master": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "task-master-mcp"
+      ],
+      "env": {
+        "TOOL_MODE": "core"
+      }
+    }
   }
 }

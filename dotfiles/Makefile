@@ -234,7 +234,7 @@ _new_session_menu:
 		_ei=1; \
 		for s in $$existing; do \
 			wins=$$(tmux list-windows -t "$$s" -F '$(HASH){window_index}:$(HASH){window_name}$(HASH){window_flags}' 2>/dev/null | tr '\n' ' '); \
-			echo "    $$_ei) [$$s] $$wins"; \
+			echo "   e$$_ei) [$$s] $$wins"; \
 			_ei=$$((_ei+1)); \
 		done; \
 		_existing_count=$$((_ei-1)); \
@@ -243,17 +243,17 @@ _new_session_menu:
 		_existing_count=0; \
 	fi; \
 	echo "  [New Session]"; \
-	echo "  1) No split (single pane)"; \
+	echo "    1) No split (single pane)"; \
 	echo "  2.1) 2-split (left | right)"; \
 	echo "  2.2) 2-split (top / bottom)"; \
-	echo "  3) 3-split (left | right-top / right-bottom)"; \
-	echo "  4) 4-split (2x2 grid)"; \
+	echo "    3) 3-split (left | right-top / right-bottom)"; \
+	echo "    4) 4-split (2x2 grid)"; \
 	echo ""; \
 	if [ -n "$$existing" ]; then \
 		echo "    s) Browse sessions (choose-tree)"; \
 		echo ""; \
 	fi; \
-	read -p "Enter number: " _choice; \
+	read -p "Enter [1/2.1/2.2/3/4/e1/s]: " _choice; \
 	if [ -z "$$_choice" ]; then _choice=1; fi; \
 	if [ "$$_choice" = "s" ] || [ "$$_choice" = "S" ]; then \
 		if [ -n "$$TMUX" ]; then \
@@ -261,9 +261,14 @@ _new_session_menu:
 		else \
 			tmux attach-session; \
 		fi; \
-	elif [ $$_existing_count -gt 0 ] && echo "$$_choice" | grep -qE '^[0-9]+$$' && [ "$$_choice" -le "$$_existing_count" ] 2>/dev/null; then \
-		sel=$$(echo "$$existing" | sed -n "$${_choice}p"); \
-		tmux attach-session -t "$$sel"; \
+	elif echo "$$_choice" | grep -qE '^e[0-9]+$$'; then \
+		_eidx=$$(echo "$$_choice" | sed 's/^e//'); \
+		if [ "$$_eidx" -ge 1 ] && [ "$$_eidx" -le "$$_existing_count" ] 2>/dev/null; then \
+			sel=$$(echo "$$existing" | sed -n "$${_eidx}p"); \
+			tmux attach-session -t "$$sel"; \
+		else \
+			echo "Invalid session number"; exit 1; \
+		fi; \
 	else \
 		case $$_choice in \
 			1) $(MAKE) _split_menu ;; \

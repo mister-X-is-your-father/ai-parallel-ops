@@ -24,6 +24,7 @@ set -g status 2
 set -g status-bg colour235
 set -g status-fg white
 set -g status-left '[#S] '
+set -g status-left-length 30
 set -g status-right '%Y-%m-%d %H:%M'
 
 # 2段目: チートシート
@@ -143,7 +144,7 @@ set -g status-format[1] '#[align=left,bg=colour236,fg=colour248] cc-n: 新規+�
 set -g status-format[2] '#[align=left,bg=colour237,fg=colour244] cc でヒント表示'
 ```
 
-- 1段目: セッション名 + 日時（デフォルト）
+- 1段目: セッション名 + 日時（`status-left-length 30` でセッション名が切れないようにする）
 - 2段目: エイリアス一覧
 - 3段目: 補足情報
 

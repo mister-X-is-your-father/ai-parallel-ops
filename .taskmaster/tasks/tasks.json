@@ -1,22 +1,52 @@
 {
-  "default": {
+  "ai-parallel-ops": {
     "tasks": [
       {
         "id": 1,
-        "title": "LP\u30da\u30fc\u30b8\u306e\u30d2\u30fc\u30ed\u30fc\u30bb\u30af\u30b7\u30e7\u30f3\u5b9f\u88c5",
-        "description": "\u30e1\u30a4\u30f3\u30d3\u30b8\u30e5\u30a2\u30eb\u3001\u30ad\u30e3\u30c3\u30c1\u30b3\u30d4\u30fc\u3001CTA\u30dc\u30bf\u30f3\u3092\u542b\u3080\u30d5\u30a1\u30fc\u30b9\u30c8\u30d3\u30e5\u30fc\u3092\u4f5c\u6210\u3002\u30e2\u30d0\u30a4\u30eb\u30d5\u30a1\u30fc\u30b9\u30c8\u3067\u30ec\u30b9\u30dd\u30f3\u30b7\u30d6\u5bfe\u5fdc\u3002",
-        "status": "in-progress",
+        "title": "LPサイト構築",
+        "description": "製品価値・ユースケース・料金プランを伝えるランディングページ。ヒーロー、デモGIF、特徴セクション、FAQ、CTA。モバイルレスポンシブ。",
+        "status": "pending",
         "dependencies": [],
         "priority": "high",
         "details": "",
         "testStrategy": "",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "test",
+            "status": "pending",
+            "subtasks": [
+              {
+                "id": 2,
+                "title": "test",
+                "status": "pending",
+                "subtasks": [
+                  {
+                    "id": 3,
+                    "title": "test",
+                    "status": "pending"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "title": "test",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "testtest",
+            "status": "pending"
+          }
+        ]
       },
       {
         "id": 2,
-        "title": "API\u30a8\u30f3\u30c9\u30dd\u30a4\u30f3\u30c8\u306e\u8a8d\u8a3c\u5468\u308a\u4fee\u6b63",
-        "description": "JWT\u30c8\u30fc\u30af\u30f3\u306e\u6709\u52b9\u671f\u9650\u5207\u308c\u6642\u306b500\u3067\u306f\u306a\u304f401\u3092\u8fd4\u3059\u3088\u3046\u4fee\u6b63\u3002\u30ea\u30d5\u30ec\u30c3\u30b7\u30e5\u30c8\u30fc\u30af\u30f3\u306e\u30cf\u30f3\u30c9\u30ea\u30f3\u30b0\u3082\u78ba\u8a8d\u3002",
-        "status": "in-progress",
+        "title": "料金プラン設計",
+        "description": "Free/Pro/Teamの3プラン策定。機能制限の境界、価格帯、年払いディスカウント。Stripe連携前提。",
+        "status": "pending",
         "dependencies": [],
         "priority": "high",
         "details": "",
@@ -25,9 +55,140 @@
       },
       {
         "id": 3,
-        "title": "\u30c7\u30b6\u30a4\u30f3\u30c8\u30fc\u30af\u30f3\u306e\u5b9a\u7fa9",
-        "description": "\u30ab\u30e9\u30fc\u30d1\u30ec\u30c3\u30c8\u3001\u30bf\u30a4\u30dd\u30b0\u30e9\u30d5\u30a3\u3001\u30b9\u30da\u30fc\u30b7\u30f3\u30b0\u3092Figma\u304b\u3089\u62bd\u51fa\u3057\u3066CSS\u5909\u6570\u3068\u3057\u3066\u5b9a\u7fa9\u3002",
-        "status": "done",
+        "title": "認証・ユーザー管理",
+        "description": "サインアップ/ログイン/パスワードリセット。GitHub OAuth。JWTセッション管理。ユーザーDB設計。",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Stripe決済統合",
+        "description": "Checkout Session、Webhook処理、サブスク管理（作成・変更・キャンセル）。Customer Portal連携。",
+        "status": "pending",
+        "dependencies": [
+          2,
+          3
+        ],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "ライセンスキー発行・検証",
+        "description": "有料ユーザーにライセンスキー発行。CLIツール側でキー検証→機能アンロック。オフライン検証も考慮。",
+        "status": "pending",
+        "dependencies": [
+          4
+        ],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Free版機能制限の実装",
+        "description": "コード側のゲーティング。並列エージェント数制限、ダッシュボード機能制限、セッション時間制限等。",
+        "status": "pending",
+        "dependencies": [
+          5
+        ],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "CLIツールのパッケージング",
+        "description": "npm / brew / バイナリ配布。インストール手順整備。バージョン管理。Free版は機能制限付きで配布。",
+        "status": "pending",
+        "dependencies": [
+          6
+        ],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "アップグレード導線UI",
+        "description": "Free→Pro変換のUXフロー。制限に当たった時のアップグレード促進モーダル。プラン比較画面。",
+        "status": "pending",
+        "dependencies": [
+          4,
+          6
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "ドキュメントサイト",
+        "description": "セットアップガイド、tmux構成、ワークフロー解説、APIリファレンス。Starlight or Nextra。",
+        "status": "pending",
+        "dependencies": [
+          1
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "デモ動画・GIF制作",
+        "description": "LPに載せる30秒デモ動画。並列エージェント管理のワークフローを視覚的に見せる。",
+        "status": "pending",
+        "dependencies": [
+          7
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "ダッシュボード本番デプロイ",
+        "description": "Task Opsダッシュボードをクラウドデプロイ。認証ゲート付き。Pro以上限定機能（グラフ可視化等）。",
+        "status": "pending",
+        "dependencies": [
+          3,
+          6
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "マルチテナント対応",
+        "description": "ダッシュボードのユーザー別データ分離。チームプランのワークスペース共有。",
+        "status": "pending",
+        "dependencies": [
+          11
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "CI/CDパイプライン",
+        "description": "GitHub Actions。テスト→ビルド→デプロイ自動化。ステージング環境。",
+        "status": "pending",
         "dependencies": [],
         "priority": "medium",
         "details": "",
@@ -35,23 +196,287 @@
         "subtasks": []
       },
       {
-        "id": 4,
-        "title": "\u30c7\u30fc\u30bf\u30d9\u30fc\u30b9\u30de\u30a4\u30b0\u30ec\u30fc\u30b7\u30e7\u30f3\u30b9\u30af\u30ea\u30d7\u30c8\u4f5c\u6210",
-        "description": "\u65e2\u5b58\u306eusers\u30c6\u30fc\u30d6\u30eb\u306bprofile_image\u30ab\u30e9\u30e0\u8ffd\u52a0\u3002\u30ed\u30fc\u30eb\u30d0\u30c3\u30af\u7528\u306edown\u30de\u30a4\u30b0\u30ec\u30fc\u30b7\u30e7\u30f3\u3082\u5fd8\u308c\u305a\u306b\u3002",
+        "id": 14,
+        "title": "モニタリング・アラート",
+        "description": "Sentry（エラー追跡）、Uptime監視、Stripe Webhook失敗通知。PagerDuty or Slack連携。",
         "status": "pending",
-        "dependencies": [2],
+        "dependencies": [
+          11
+        ],
         "priority": "medium",
         "details": "",
         "testStrategy": "",
         "subtasks": []
       },
       {
-        "id": 5,
-        "title": "\u7d50\u5408\u30c6\u30b9\u30c8\u306e\u8ffd\u52a0",
-        "description": "\u30e6\u30fc\u30b6\u30fc\u767b\u9332\u304b\u3089\u30ed\u30b0\u30a4\u30f3\u307e\u3067\u306eE2E\u30d5\u30ed\u30fc\u3092Playwright\u3067\u66f8\u304f\u3002CI\u306b\u3082\u7d44\u307f\u8fbc\u3080\u3002",
+        "id": 15,
+        "title": "ドメイン・DNS・SSL",
+        "description": "プロダクトドメイン取得。DNS設定。Let's Encrypt or Cloudflare SSL。",
         "status": "pending",
-        "dependencies": [2, 4],
+        "dependencies": [],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "バックアップ・リストア戦略",
+        "description": "DB定期バックアップ。復元テスト。ポイントインタイムリカバリ。",
+        "status": "pending",
+        "dependencies": [
+          11
+        ],
         "priority": "low",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "利用規約・プライバシーポリシー",
+        "description": "ToS、Privacy Policy、特商法表記。日英両方。返金ポリシー。GDPR考慮。",
+        "status": "pending",
+        "dependencies": [
+          2
+        ],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Stripe Tax・インボイス対応",
+        "description": "日本の適格請求書対応。Stripe Tax設定。通貨別対応（JPY/USD）。",
+        "status": "pending",
+        "dependencies": [
+          4
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "OSSライセンス監査",
+        "description": "依存パッケージのライセンス確認。GPL汚染チェック。NOTICE/THIRD-PARTYファイル生成。",
+        "status": "pending",
+        "dependencies": [
+          7
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "分析基盤",
+        "description": "コンバージョン追跡（LP→サインアップ→課金）。ファネル分析。PostHog or Mixpanel。",
+        "status": "pending",
+        "dependencies": [
+          1,
+          4
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "サポート体制構築",
+        "description": "問い合わせフォーム/メール対応。FAQ自動応答。GitHub Issues連携。SLA定義。",
+        "status": "pending",
+        "dependencies": [
+          9
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "SEO対策",
+        "description": "LP・ドキュメントのメタタグ、OGP、構造化データ。サイトマップ。Google Search Console登録。",
+        "status": "pending",
+        "dependencies": [
+          1,
+          9
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "ブログ・チュートリアル記事",
+        "description": "「並列AI管理入門」「tmux+Claude Code実践」等の記事3-5本。SEO流入狙い。",
+        "status": "pending",
+        "dependencies": [
+          9
+        ],
+        "priority": "low",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "SNSアセット制作",
+        "description": "X/Reddit/HN用のバナー画像、OGP画像。プロダクトスクショ。ブランドガイドライン。",
+        "status": "pending",
+        "dependencies": [
+          10
+        ],
+        "priority": "low",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "競合調査・ポジショニング",
+        "description": "Cursor, Windsurf, Aider等との差別化ポイント整理。LP・ドキュメントへの反映。",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 26,
+        "title": "E2Eテスト（購入フロー）",
+        "description": "サインアップ→プラン選択→Stripe決済→ライセンス受取→CLI認証の一連をPlaywrightで自動テスト。",
+        "status": "pending",
+        "dependencies": [
+          5,
+          7
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 27,
+        "title": "セキュリティ監査",
+        "description": "認証フロー、API、決済周りの脆弱性チェック。OWASP Top 10。依存パッケージの脆弱性スキャン。",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4,
+          5
+        ],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 28,
+        "title": "レート制限・不正利用対策",
+        "description": "API レート制限。ライセンスキー共有検知。アカウント乗っ取り防止。",
+        "status": "pending",
+        "dependencies": [
+          5,
+          11
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 29,
+        "title": "ベータユーザー募集",
+        "description": "X/Reddit/HNでベータ告知。10-20名に無料アクセス提供。フィードバックフォーム設置。",
+        "status": "pending",
+        "dependencies": [
+          7,
+          9,
+          10
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 30,
+        "title": "ベータフィードバック反映",
+        "description": "ベータユーザーからのフィードバックをトリアージ。クリティカルなものを修正。",
+        "status": "pending",
+        "dependencies": [
+          29
+        ],
+        "priority": "high",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 31,
+        "title": "パフォーマンス最適化",
+        "description": "LP表示速度（Lighthouse 90+）。ダッシュボードの大量タスク対応。WebSocket効率化。",
+        "status": "pending",
+        "dependencies": [
+          1,
+          11
+        ],
+        "priority": "low",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 32,
+        "title": "i18n対応（日英）",
+        "description": "LP、ダッシュボード、ドキュメント、メール通知の日英切替。next-intl or similar。",
+        "status": "pending",
+        "dependencies": [
+          1,
+          9,
+          11
+        ],
+        "priority": "low",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 33,
+        "title": "メール通知",
+        "description": "ウェルカムメール、課金通知、ライセンスキー送付、パスワードリセット。Resend or SES。",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4
+        ],
+        "priority": "medium",
+        "details": "",
+        "testStrategy": "",
+        "subtasks": []
+      },
+      {
+        "id": 34,
+        "title": "公開ローンチ",
+        "description": "Product Hunt、HN Show、X告知。LP公開・決済有効化・ドキュメント公開を同時。",
+        "status": "pending",
+        "dependencies": [
+          17,
+          18,
+          22,
+          26,
+          27,
+          30
+        ],
+        "priority": "high",
         "details": "",
         "testStrategy": "",
         "subtasks": []
@@ -59,7 +484,10 @@
     ],
     "metadata": {
       "projectName": "ai-parallel-ops",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "created": "2026-02-02T12:35:07.793Z",
+      "description": "Tasks for ai-parallel-ops context",
+      "updated": "2026-02-02T12:35:17.704Z"
     }
   }
 }
