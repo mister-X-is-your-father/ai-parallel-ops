@@ -12,9 +12,17 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SNAPSHOT_BIN="$SCRIPT_DIR/snapshot.sh"
 WATCHER_BIN="$SCRIPT_DIR/watcher.sh"
+MEMWATCH_BIN="$SCRIPT_DIR/memwatch.sh"
 LOG_DIR="/var/log/leo-diag"
 
-chmod +x "$SNAPSHOT_BIN" "$WATCHER_BIN"
+chmod +x "$SNAPSHOT_BIN" "$WATCHER_BIN" "$MEMWATCH_BIN"
+
+# === systemd-coredump (ユーザープロセスのコアダンプ取得) ===
+if ! dpkg -s systemd-coredump &>/dev/null; then
+    echo "Installing systemd-coredump..."
+    apt-get install -y systemd-coredump | tail -3
+fi
+echo "✓ systemd-coredump (coredumpctl で確認可)"
 mkdir -p "$LOG_DIR"
 chown $SUDO_USER:$SUDO_USER "$LOG_DIR"
 
@@ -91,7 +99,31 @@ cat > /etc/systemd/system/tailscaled.service.d/leo-diag.conf <<EOF
 OnFailure=leo-diag-on-tsdown.service
 EOF
 
-# === 4. realtime watcher (常駐、journal -f でクリティカル検出時即snapshot) ===
+# === 4. memory watch (2分毎、閾値超過でntfy通知) ===
+cat > /etc/systemd/system/leo-memwatch.service <<EOF
+[Unit]
+Description=leo memory watch (alert via ntfy on threshold)
+
+[Service]
+Type=oneshot
+ExecStart=$MEMWATCH_BIN
+User=root
+EOF
+
+cat > /etc/systemd/system/leo-memwatch.timer <<EOF
+[Unit]
+Description=leo memory watch every 2 min
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+# === 5. realtime watcher (常駐、journal -f でクリティカル検出時即snapshot) ===
 cat > /etc/systemd/system/leo-diag-watcher.service <<EOF
 [Unit]
 Description=leo diag realtime watcher (journalctl -f based)
@@ -113,6 +145,7 @@ systemctl daemon-reload
 systemctl enable --now leo-diag-snapshot.timer
 systemctl enable leo-diag-boot.service
 systemctl enable --now leo-diag-watcher.service
+systemctl enable --now leo-memwatch.timer
 systemctl restart tailscaled || true
 
 echo

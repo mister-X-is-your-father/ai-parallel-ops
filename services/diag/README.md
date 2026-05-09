@@ -9,8 +9,11 @@ leo (WSL) 自身の状態を常時記録する診断ロガー。Tailscale停止�
 | 通常稼働状態 | systemd timer で 10分毎スナップショット |
 | 起動直後 | systemd boot サービスで起動から30秒後にスナップショット |
 | **Tailscale異常終了** | `tailscaled.service` の OnFailure ドロップインで自動発火 |
+| **リアルタイム監視** | `leo-diag-watcher.service` が journalctl -f を tail、クリティカルパターン検出時に即snapshot |
+| **メモリ枯渇予兆** | `leo-memwatch.timer` が2分毎にチェック、閾値超過でntfy通知 + 即snapshot |
+| **ユーザープロセスのクラッシュ** | systemd-coredump でコアダンプ取得 (`coredumpctl list/info`) |
 | OOM killer | journal から検出 |
-| systemd失敗ユニット | スナップショット時に検出 |
+| systemd失敗ユニット | スナップショット時に検出 (system + user 両方) |
 
 ログ場所: `/var/log/leo-diag/YYYY-MM-DD/HHMMSS_<reason>.txt`
 
