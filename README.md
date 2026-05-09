@@ -1,6 +1,8 @@
-# AI Parallel Ops
+# claudeutil
 
-Claude Code、Google Gemini（画像生成: Nano Banana等）など複数のAIツールを並列稼働させ、監督（ディレクター）として仕事を進めるためのワークフロー定義。
+Claude Code を中心とした個人開発インフラ・運用基盤のリポジトリ。複数のAIツールを並列稼働させて監督するためのワークフロー定義、leoホストの診断レコーダー、ntfy通知サービスなどを含む。
+
+> 旧称 ai-parallel-ops。現在は「並列オペレーション」だけでなくセルフホスト基盤全般を扱う。
 
 ## 前提: ホームディレクトリへのシンボリックリンク
 
@@ -28,6 +30,13 @@ ln -sf ~/claudeutil/dotfiles/claude-settings.json ~/.claude/settings.json
 - [todo-management.md](todo-management.md) - TODO管理ツール（Task Master連携、Task Studio、CLI操作、PRDの書き方）
 - [dotfiles/](dotfiles/) - 実際の設定ファイル（`.tmux.conf`、`claude-settings.json`）。新環境へのセットアップ用
 - [scripts/](scripts/) - セットアップスクリプト（Task StudioのWSL2パッチ＆起動）
+- [services/ntfy/](services/ntfy/) - セルフホストntfy通知サーバー (Claude Code Stop/Notification → Windows/Android到達)
+- [services/diag/](services/diag/) - leo診断レコーダー (snapshot/watcher/memwatch、クラッシュ事後解析用)
+
+## 関連リポジトリ
+
+- [rpa](https://github.com/mister-X-is-your-father/rpa) — ブラウザ/デスクトップ自動化（ai-rpa: LLM操作、static-rpa: 決定的スクリプト、共通diagレコーダー）
+- [wordpress-rpa-custom](https://github.com/mister-X-is-your-father/wordpress-rpa-custom) — WordPress (FSE) 編集用Playwrightツールキット
 
 ## コンセプト
 
