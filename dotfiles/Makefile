@@ -14,7 +14,7 @@ MAKEFLAGS += --no-print-directory
 HASH := \#
 
 # Mode prompt snippet (reused in _launch and _multi_session)
-# Requires: source ~/ai-parallel-ops/dotfiles/claude-aliases.sh
+# Requires: source ~/claudeutil/dotfiles/claude-aliases.sh
 define ASK_MODE
 read -p "cc-r (再開+自律) でいい？ [Y/n/c/N/R/C/s]: " _mode; \
 case $$_mode in \

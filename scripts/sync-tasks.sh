@@ -10,12 +10,12 @@
 #   ./scripts/sync-tasks.sh --remove myapp           # プロジェクトを削除
 #   ./scripts/sync-tasks.sh --list                   # 登録済みプロジェクト一覧
 #
-# 統合先: ~/ai-parallel-ops/.taskmaster/tasks/tasks.json
-# 設定:   ~/ai-parallel-ops/.taskmaster/projects.json
+# 統合先: ~/claudeutil/.taskmaster/tasks/tasks.json
+# 設定:   ~/claudeutil/.taskmaster/projects.json
 
 set -euo pipefail
 
-HUB_DIR="$HOME/ai-parallel-ops/.taskmaster"
+HUB_DIR="$HOME/claudeutil/.taskmaster"
 HUB_TASKS="$HUB_DIR/tasks/tasks.json"
 PROJECTS_FILE="$HUB_DIR/projects.json"
 
@@ -88,7 +88,7 @@ do_sync() {
     fi
   done < <(jq -r 'to_entries[] | "\(.key)=\(.value)"' "$PROJECTS_FILE")
 
-  # ai-parallel-ops自身のタスクも含める（hubとして）
+  # claudeutil自身のタスクも含める（hubとして）
   if [[ -f "$HUB_TASKS" ]]; then
     local hub_content
     hub_content=$(cat "$HUB_TASKS")
