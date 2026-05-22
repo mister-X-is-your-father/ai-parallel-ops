@@ -204,6 +204,6 @@ fi
 
 [ -n "$last_input" ] && out+="\n\033[0;37m${last_input}\033[00m"
 
-[ -n "$brain" ] && out+="\n\033[02;3;35m脳: ${brain}\033[00m"
+[ -n "$brain" ] && out+="\n\033[01;33m脳: ${brain}\033[00m"
 
 printf '%b' "$out"
