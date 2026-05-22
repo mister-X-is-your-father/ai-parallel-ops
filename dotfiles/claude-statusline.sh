@@ -111,6 +111,6 @@ fi
 
 [ "$last_ts" != "-" ] && [ -n "$last_ts" ] && out+=" \033[0;36mlast:${last_ts}\033[00m"
 
-[ -n "$last_input" ] && out+=" \033[0;37m${last_input}\033[00m"
+[ -n "$last_input" ] && out+="\n\033[0;37m${last_input}\033[00m"
 
 printf '%b' "$out"
