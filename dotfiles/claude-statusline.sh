@@ -3,7 +3,7 @@
 # 出力:
 #   行1: [model] ctx:N% [5h:N%] [7d:N%] [wake:Xm] [last:HH:MM]
 #   行2: [最後のユーザメッセージ]
-#   行3: [仕事術の一手] (再描画のたびにランダム選択)
+#   行3: [仕事術の一手] (20秒ごとに切替、同一20秒窓では固定)
 #
 # wake セグメント: ScheduleWakeup tool の最新呼出を transcript .jsonl から
 # 抽出して、 timestamp + delaySeconds = wake_at の残り時間を表示する。
@@ -404,7 +404,15 @@ wake_str = "-" if wake_seconds_remaining is None else str(wake_seconds_remaining
 last_str = "-" if last_assistant_ts is None \
     else datetime.fromtimestamp(last_assistant_ts).strftime("%m-%d %H:%M")
 
-tip = random.choice(TIPS).replace("|", " ")
+# 20秒ごとに切替、同一20秒窓では固定 (再描画でチラつかない)。
+# カブり防止: 全TIPSをシャッフルした順に1個ずつ消化し、一周したら別の順で再シャッフル。
+# → 一周(len(TIPS)×20秒)の間は同じ文言が出ず、全項目が均等に1回ずつ出る。
+_period = 20
+_n = len(TIPS)
+_cycle, _pos = divmod(int(time.time() // _period), _n)
+_order = list(range(_n))
+random.Random(_cycle).shuffle(_order)
+tip = TIPS[_order[_pos]].replace("|", " ")
 
 print(f"{model}|{int(ctx)}|{int(h5) if h5 >= 0 else -1}|{int(d7) if d7 >= 0 else -1}|{wake_str}|{last_str}|{last_user}|{tip}")
 PY
