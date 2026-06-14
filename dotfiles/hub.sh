@@ -33,11 +33,12 @@ attach_or_switch() {  # $1=session
   if [ -n "${TMUX:-}" ]; then tmux switch-client -t "=$1"; else tmux attach-session -t "=$1"; fi
 }
 
-launch() {  # $1=name $2=dir $3=mode(shell|claude|claude-c)
+launch() {  # $1=name $2=dir $3=mode(shell|cc-n|cc-r|cc-c)
   local name="$1" dir="$2" mode="$3" cmd="" base n=2
+  # cc-* は claude-aliases.sh の関数(自律=権限スキップ+ログ+新規fallback)をそのまま起動。
+  # shell は cmd 空のまま=素のシェル。
   case "$mode" in
-    claude)   cmd="claude" ;;
-    claude-c) cmd="claude -c --dangerously-skip-permissions" ;;
+    cc-n|cc-r|cc-c) cmd="$mode" ;;
   esac
   base="$name"
   while tmux has-session -t "=$name" 2>/dev/null; do name="${base}-${n}"; n=$((n+1)); done
@@ -137,9 +138,10 @@ cand_projects() {  # $1=category
 }
 
 cand_modes() {
-  printf 'shell (素のシェル)%sshell\n' "$TAB"
-  printf 'claude%sclaude\n' "$TAB"
-  printf 'claude -c --dangerously (続き+権限スキップ)%sclaude-c\n' "$TAB"
+  printf 'cc-c   継続 + 自律 (失敗→新規)%scc-c\n' "$TAB"
+  printf 'cc-r   再開 + 自律 (失敗→新規)%scc-r\n' "$TAB"
+  printf 'cc-n   新規 + 自律%scc-n\n' "$TAB"
+  printf 'shell  素のシェル%sshell\n' "$TAB"
 }
 
 # 状態マシン: top → project → mode -------------------------------------
