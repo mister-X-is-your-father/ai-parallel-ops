@@ -42,7 +42,7 @@ launch() {  # $1=name $2=dir $3=mode(shell|claude|claude-c)
   base="$name"
   while tmux has-session -t "=$name" 2>/dev/null; do name="${base}-${n}"; n=$((n+1)); done
   tmux new-session -d -s "$name" -c "$dir"
-  [ -n "$cmd" ] && tmux send-keys -t "=$name" "$cmd" Enter
+  [ -n "$cmd" ] && tmux send-keys -t "=$name:" "$cmd" Enter
   attach_or_switch "$name"
 }
 
@@ -55,7 +55,7 @@ launch_special() {  # $1=name (sessions.yaml の session)
   base="$name"
   while tmux has-session -t "=$name" 2>/dev/null; do name="${base}-${n}"; n=$((n+1)); done
   tmux new-session -d -s "$name" -c "$dir"
-  { [ "$cmd" != "null" ] && [ -n "$cmd" ]; } && tmux send-keys -t "=$name" "$cmd" Enter
+  { [ "$cmd" != "null" ] && [ -n "$cmd" ]; } && tmux send-keys -t "=$name:" "$cmd" Enter
   attach_or_switch "$name"
 }
 
