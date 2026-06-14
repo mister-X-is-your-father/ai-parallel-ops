@@ -7,14 +7,19 @@ set -uo pipefail
 
 CONFIG="$HOME/sessions.yaml"
 TAB=$'\t'
+SELF="$(readlink -f "$0" 2>/dev/null || echo "$0")"  # 自身の絶対パス(fzf bind から再呼出する)
 
 # fzf 実行。候補は stdin("label<TAB>value")。
 # 出力: "<key><TAB><value>"  key ∈ {enter,right,left}。Esc は rc!=0。
-pick() {  # $1=prompt, $2(opt)=preview cmd
-  local prompt="$1" preview="${2:-}" out key line
+pick() {  # $1=prompt, $2(opt)=preview cmd, $3(opt)=rename(1で F2 名前変更を有効化)
+  local prompt="$1" preview="${2:-}" rename="${3:-}" out key line hdr
+  hdr='→/Enter: 入る   ←/Esc: 戻る'
+  [ -n "$rename" ] && hdr="$hdr   F2: セッション名を変更"
   local args=(--expect=left,right --height=90% --reverse --border --ansi \
               --prompt="$prompt > " --delimiter="$TAB" --with-nth=1 \
-              --header='→/Enter: 入る   ←/Esc: 戻る')
+              --header="$hdr")
+  # F2: 選択中セッションを rename → 一覧を即リフレッシュ(session行以外は無視)
+  [ -n "$rename" ] && args+=(--bind "f2:execute($SELF --rename {2})+reload($SELF --emit-top)")
   [ -n "$preview" ] && args+=(--preview="$preview" --preview-window=right:55%)
   out=$(fzf "${args[@]}") || return 1          # Esc/Ctrl-C
   key=$(sed -n 1p <<<"$out"); [ -z "$key" ] && key=enter
@@ -66,6 +71,56 @@ cand_top() {
   fi
 }
 
+# トップ画面 preview: 候補の正体(=判断材料)を右ペインに出す。
+#   session行 → そのセッションの作業ディレクトリ + 各 pane の path/実行コマンド
+#   cat行     → そのカテゴリ直下のプロジェクト一覧
+#   special行 → sessions.yaml の該当エントリ
+do_preview_top() {  # $1 = value(session:NAME | cat:X | special:Y)
+  local val="${1:-}"
+  case "$val" in
+    session:*)
+      local s="${val#session:}" dir
+      dir=$(tmux list-panes -t "=$s" -F '#{pane_current_path}' 2>/dev/null | head -1)
+      printf '⧉ tmux session: %s\n' "$s"
+      printf '📁 %s\n\n' "${dir:-?}"
+      echo "── windows / panes ──"
+      tmux list-panes -s -t "=$s" \
+        -F '  #{window_index}.#{pane_index}  #{pane_current_command}  ←  #{pane_current_path}' 2>/dev/null
+      printf '\n↳ F2 でこのセッションを改名\n'
+      ;;
+    cat:*)
+      local c base; c="${val#cat:}"; base="$HOME/$c"; [ "$c" = "~" ] && base="$HOME"
+      printf '▸ %s\n\n' "$base"
+      ls -1 "$base" 2>/dev/null | head -40
+      ;;
+    special:*)
+      local n="${val#special:}"
+      printf '✶ sessions.yaml: %s\n\n' "$n"
+      command -v yq >/dev/null 2>&1 && yq ".sessions[] | select(.name==\"$n\")" "$CONFIG" 2>/dev/null
+      ;;
+  esac
+}
+
+# F2 から呼ばれる: 選択中のセッションを rename(session行以外は何もしない)
+do_rename() {  # $1 = value(session:NAME ...)
+  local val="${1:-}" old first rest new
+  case "$val" in session:*) old="${val#session:}" ;; *) exit 0 ;; esac
+  printf '\n  セッション名変更  "%s" → (Esc/空Enter で中止): ' "$old" > /dev/tty
+  # 1文字目を生取りして Esc(0x1b)/空Enter を中止として捕捉
+  IFS= read -rsn1 first < /dev/tty || { printf '中止\n' > /dev/tty; exit 0; }
+  if [ "$first" = $'\033' ] || [ -z "$first" ]; then
+    printf '中止\n' > /dev/tty; exit 0
+  fi
+  printf '%s' "$first" > /dev/tty            # 1文字目をエコーして残りを通常入力
+  IFS= read -r rest < /dev/tty || { printf '\n中止\n' > /dev/tty; exit 0; }
+  new="${first}${rest}"
+  new="${new// /-}"                          # tmux セッション名に空白は不向き → ハイフン化
+  [ -z "$new" ] && { printf '中止\n' > /dev/tty; exit 0; }
+  if tmux rename-session -t "=$old" "$new" 2>/dev/tty; then
+    printf '  ✓ %s → %s\n' "$old" "$new" > /dev/tty
+  fi
+}
+
 cand_projects() {  # $1=category
   local cat="$1" base="$HOME/$cat" exc; [ "$cat" = "~" ] && base="$HOME"
   exc="$(excludes)"
@@ -91,7 +146,7 @@ main() {
   while true; do
     case "$level" in
       top)
-        res=$(cand_top | pick "leo hub") || exit 0      # Esc=終了
+        res=$(cand_top | pick "leo hub" "$SELF --preview-top {2}" 1) || exit 0   # Esc=終了 / F2=rename
         key="${res%%$TAB*}"; val="${res#*$TAB}"
         [ "$key" = left ] && exit 0                       # 左=これ以上戻れない→終了
         case "$val" in
@@ -113,4 +168,11 @@ main() {
     esac
   done
 }
+# fzf の bind / preview から再呼出されるサブコマンド(対話メイン前に捌く)
+case "${1:-}" in
+  --emit-top)    cand_top; exit 0 ;;
+  --preview-top) do_preview_top "${2:-}"; exit 0 ;;
+  --rename)      do_rename "${2:-}"; exit 0 ;;
+esac
+
 main "$@"
