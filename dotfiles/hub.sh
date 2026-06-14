@@ -105,8 +105,11 @@ do_preview_top() {  # $1 = value(session:NAME | cat:X | special:Y)
 do_rename() {  # $1 = value(session:NAME ...)
   local val="${1:-}" old first rest new
   case "$val" in session:*) old="${val#session:}" ;; *) exit 0 ;; esac
+  # F2 キーシーケンスの残留バイト(\177=DEL や \033[.. の断片)が tty バッファに
+  # 残っていると 1文字目読みがそれを拾う(=名前先頭に紛れ込む)。先に排出する。
+  while IFS= read -rsn1 -t 0.05 _ < /dev/tty; do :; done
   printf '\n  セッション名変更  "%s" → (Esc/空Enter で中止): ' "$old" > /dev/tty
-  # 1文字目を生取りして Esc(0x1b)/空Enter を中止として捕捉
+  # 1文字目を生取りして Esc(0x1b)/空Enter を中止として捕捉(残骸排出後なので確実)
   IFS= read -rsn1 first < /dev/tty || { printf '中止\n' > /dev/tty; exit 0; }
   if [ "$first" = $'\033' ] || [ -z "$first" ]; then
     printf '中止\n' > /dev/tty; exit 0
@@ -114,7 +117,8 @@ do_rename() {  # $1 = value(session:NAME ...)
   printf '%s' "$first" > /dev/tty            # 1文字目をエコーして残りを通常入力
   IFS= read -r rest < /dev/tty || { printf '\n中止\n' > /dev/tty; exit 0; }
   new="${first}${rest}"
-  new="${new// /-}"                          # tmux セッション名に空白は不向き → ハイフン化
+  new=$(printf '%s' "$new" | tr -d '\000-\037\177')  # 念のため制御文字(DEL含む)を除去
+  new="${new// /-}"                                   # tmux セッション名に空白は不向き → ハイフン化
   [ -z "$new" ] && { printf '中止\n' > /dev/tty; exit 0; }
   if tmux rename-session -t "=$old" "$new" 2>/dev/tty; then
     printf '  ✓ %s → %s\n' "$old" "$new" > /dev/tty
