@@ -1,0 +1,22 @@
+--- a/internal/hooks/hooks.go
++++ b/internal/hooks/hooks.go
+@@ -563,9 +563,17 @@
+ 
+ 	joined := joinMessageParts(body, actions)
+ 
+-	// Format: "[sessionname|branch folder] message" or "[sessionname folder] message"
++	// Prefer the tmux session name (user-controlled via rename-session / F2) for
++	// the notification prefix; it identifies the session far better than the
++	// generated "deer da335448" label. When present we show just "[tmuxname]" and
++	// also propagate it as the structured SessionName so webhook presets (Slack/
++	// Discord/ntfy) stay consistent. Otherwise fall back to the original
++	// "[sessionname|branch folder]" / "[sessionname folder]" forms.
+ 	var enhancedMessage string
+-	if gitBranch != "" {
++	if tmuxName := notifier.GetTmuxSessionName(); tmuxName != "" {
++		sessionName = tmuxName
++		enhancedMessage = fmt.Sprintf("[%s] %s", tmuxName, joined)
++	} else if gitBranch != "" {
+ 		enhancedMessage = fmt.Sprintf("[%s|%s %s] %s", sessionName, gitBranch, folderName, joined)
+ 	} else {
+ 		enhancedMessage = fmt.Sprintf("[%s %s] %s", sessionName, folderName, joined)

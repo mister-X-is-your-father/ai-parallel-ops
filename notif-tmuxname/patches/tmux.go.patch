@@ -1,0 +1,41 @@
+--- a/internal/notifier/tmux.go
++++ b/internal/notifier/tmux.go
+@@ -73,6 +73,38 @@
+ 	return target, nil
+ }
+ 
++// GetTmuxSessionName returns the tmux session name (e.g. "manademia-sub") of the
++// session the calling process belongs to. The name follows tmux rename-session
++// (F2 etc.), so it reflects the user's chosen label rather than a generated one.
++//
++// Resolves the pane the same way as GetTmuxPaneTarget ($TMUX_PANE first, then a
++// socket-scoped fallback) so it works even when the notifier runs outside the
++// user's shell PATH. Returns "" when not inside tmux or on any failure, so
++// callers can fall back to the generated session label.
++func GetTmuxSessionName() string {
++	if !IsTmux() {
++		return ""
++	}
++	tmuxPath := getTmuxPath()
++	socketPath := getTmuxSocketPath()
++
++	args := []string{}
++	if socketPath != "" {
++		args = append(args, "-S", socketPath)
++	}
++	args = append(args, "display-message", "-p")
++	if pane := os.Getenv("TMUX_PANE"); pane != "" {
++		args = append(args, "-t", pane)
++	}
++	args = append(args, "#{session_name}")
++
++	output, err := exec.Command(tmuxPath, args...).Output()
++	if err != nil {
++		return ""
++	}
++	return strings.TrimSpace(string(output))
++}
++
+ // IsTmuxControlMode returns true if any tmux client attached to the current
+ // server is running in control mode (-CC), typically used by iTerm2.
+ // In control mode, standard tmux select-window doesn't cause iTerm2 to
