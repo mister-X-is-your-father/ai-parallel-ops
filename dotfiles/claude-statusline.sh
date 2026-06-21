@@ -452,8 +452,11 @@ fi
 
 [ -n "$tip" ] && out+="\n\033[01;33m仕事: ${tip}\033[00m"
 
-# 起動中サーバー一覧: 所有プロセス付き listen socket を port:label で表示
+# 起動中サーバー一覧は tmux 2段目の [srv:N] タップ → display-menu に移行(srv-status.sh --menu)。
+# ここはデフォルト無効(状態ファイルが無いので出ない)。Claude statusline に固定表示したい時だけ
+# `touch ~/.claude/statusline-srv.open` で復活する保険として残置。
 # (root/system のポートは pid 取得不可なので自動除外、label は /proc cmdline 由来)
+if [ -e "$HOME/.claude/statusline-srv.open" ]; then
 srv=$(ss -tlnpH 2>/dev/null | python3 -c '
 import sys, re, os
 HOST = os.uname().nodename.split(".")[0].lower()  # Tailscale ホスト名 (= leo)。URL 表示用
@@ -517,6 +520,7 @@ if [ -n "$srv" ]; then
     if [ "$_first" = 1 ]; then out+="\n\033[0;34msrv: ${_s}\033[00m"; _first=0
     else out+="\n\033[0;34m     ${_s}\033[00m"; fi
   done <<< "$srv"
+fi
 fi
 
 printf '%b' "$out"
