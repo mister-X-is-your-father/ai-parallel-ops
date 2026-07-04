@@ -87,15 +87,38 @@ else \
 fi
 endef
 
-.PHONY: claude general claude-only new ls kill attach _split_menu _new_session_menu _multi_session _menu _create_repo _launch
+.PHONY: claude general claude-only new ls kill attach _split_menu _new_session_menu _multi_session _menu _create_repo _launch _wait_restore
 
 # Main session launcher
 claude:
-	@name="$(filter-out claude,$(MAKECMDGOALS))"; \
+	@$(MAKE) _wait_restore; \
+	name="$(filter-out claude,$(MAKECMDGOALS))"; \
 	if [ -n "$$name" ]; then \
 		$(MAKE) _launch NAME=$$name; \
 	else \
 		$(MAKE) _new_session_menu; \
+	fi
+
+# 再起動直後の1発目対策 (2026-06-12): tmux サーバ新規起動時、continuum の自動復元は非同期で走る。
+# 復元完了前にメニューを開くと既存セッション(e1/e2)が空に見える。サーバが若い(起動<2分)かつ
+# resurrect 保存データのセッションがまだ揃っていない時だけ、最大15秒復元を待つ。
+# (復元済み/通常時は判定2回で即素通り。保存データに無いセッションを手動 kill した場合も timeout で抜ける)
+_wait_restore:
+	@start=$$(tmux display-message -p '$(HASH){start_time}' 2>/dev/null || echo 0); \
+	now=$$(date +%s); \
+	if [ "$${start:-0}" -gt 0 ] && [ $$((now - start)) -lt 120 ]; then \
+		last="$$HOME/.tmux/resurrect/last"; \
+		if [ -f "$$last" ]; then \
+			expected=$$(awk -F'\t' '$$1=="window"{print $$2}' "$$last" | sort -u); \
+			i=0; \
+			while [ $$i -lt 15 ]; do \
+				missing=0; \
+				for s in $$expected; do tmux has-session -t "=$$s" 2>/dev/null || missing=1; done; \
+				[ "$$missing" -eq 0 ] && break; \
+				[ $$i -eq 0 ] && echo "  (再起動直後のため、セッション復元の完了を待っています...)"; \
+				sleep 1; i=$$((i+1)); \
+			done; \
+		fi; \
 	fi
 
 # Quick shortcuts
@@ -509,29 +532,26 @@ _launch:
 		cmd="$$_cc_cmd"; \
 	fi; \
 	$(ASK_BRANCH); \
-	if tmux has-session -t $$name 2>/dev/null; then \
-		echo "Attaching to existing session: $$name"; \
-		if [ -n "$$_git_cmd" ]; then \
-			tmux send-keys -t $$name "cd $$dir && $$_git_cmd" Enter; \
-			sleep 1; \
-		fi; \
-		if [ -n "$$cmd" ]; then \
-			if ! tmux list-panes -t $$name -F '$(HASH){pane_current_command}' | grep -q claude; then \
-				tmux send-keys -t $$name "cd $$dir && $$cmd" Enter; \
-			fi; \
-		fi; \
-	else \
-		echo "Creating new session: $$name"; \
-		tmux new-session -d -s $$name -c "$$dir"; \
-		if [ -n "$$_git_cmd" ]; then \
-			tmux send-keys -t $$name "$$_git_cmd" Enter; \
-			sleep 1; \
-		fi; \
-		if [ -n "$$cmd" ]; then \
-			tmux send-keys -t $$name "$$cmd" Enter; \
-		fi; \
+	if tmux has-session -t "=$$name" 2>/dev/null; then \
+		base="$$name"; n=2; \
+		while tmux has-session -t "=$$base-$$n" 2>/dev/null; do n=$$((n+1)); done; \
+		name="$$base-$$n"; \
+		echo "Session '$$base' は既存 → 新規セッション '$$name' を作成します (既存に入るなら既存リスト/e番号で選択)"; \
 	fi; \
-	tmux attach-session -t $$name
+	echo "Creating new session: $$name"; \
+	tmux new-session -d -s "$$name" -c "$$dir"; \
+	if [ -n "$$_git_cmd" ]; then \
+		tmux send-keys -t "=$$name" "$$_git_cmd" Enter; \
+		sleep 1; \
+	fi; \
+	if [ -n "$$cmd" ]; then \
+		tmux send-keys -t "=$$name" "$$cmd" Enter; \
+	fi; \
+	if [ -n "$$TMUX" ]; then \
+		tmux switch-client -t "=$$name"; \
+	else \
+		tmux attach-session -t "=$$name"; \
+	fi
 
 # Catch-all for session names passed as targets
 %:

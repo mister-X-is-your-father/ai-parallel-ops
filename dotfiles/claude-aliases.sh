@@ -12,18 +12,32 @@ cc-n() {
     claude --dangerously-skip-permissions "$@"
 }
 
+# 起動/終了を ~/.cache/cc-launcher.log に記録 (2026-06-12: 「Claudeが一瞬で終了する」事象の追跡用)
+# exit code が残るので「本当に claude が即死したのか / そもそも起動していないのか」を後から確定できる。
+_cc_log() { echo "$(date '+%F %T') $*" >> "$HOME/.cache/cc-launcher.log"; }
+
 cc-r() {
-    claude -r --dangerously-skip-permissions "$@" || {
+    _cc_log "cc-r start pane=${TMUX_PANE:-none} cwd=$PWD"
+    claude -r --dangerously-skip-permissions "$@"
+    local _code=$?
+    _cc_log "cc-r end exit=$_code pane=${TMUX_PANE:-none} cwd=$PWD"
+    if [ "$_code" -ne 0 ]; then
         echo "No conversation to resume. Starting new session..." >&2
         claude --dangerously-skip-permissions "$@"
-    }
+        _cc_log "cc-r fallback-new end exit=$? cwd=$PWD"
+    fi
 }
 
 cc-c() {
-    claude -c --dangerously-skip-permissions "$@" || {
+    _cc_log "cc-c start pane=${TMUX_PANE:-none} cwd=$PWD"
+    claude -c --dangerously-skip-permissions "$@"
+    local _code=$?
+    _cc_log "cc-c end exit=$_code pane=${TMUX_PANE:-none} cwd=$PWD"
+    if [ "$_code" -ne 0 ]; then
         echo "No conversation to continue. Starting new session..." >&2
         claude --dangerously-skip-permissions "$@"
-    }
+        _cc_log "cc-c fallback-new end exit=$? cwd=$PWD"
+    fi
 }
 
 alias cc-n-m='claude'

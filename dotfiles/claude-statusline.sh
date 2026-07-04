@@ -448,6 +448,28 @@ fi
 
 [ "$last_ts" != "-" ] && [ -n "$last_ts" ] && out+=" \033[0;36mlast:${last_ts}\033[00m"
 
+# --- RAM / swap / C:ドライブ空き (2026-06-09 追加: メモリ+ディスクの常時可視化) ---
+# C: 枯渇が WSL クラッシュ要因(ext4.vhdx 拡張失敗)のため C: 空きを赤/黄で警告する。
+_ma=$(awk '/^MemAvailable:/{printf "%.1f",$2/1048576}' /proc/meminfo)
+_st=$(awk '/^SwapTotal:/{print $2}' /proc/meminfo); _sf=$(awk '/^SwapFree:/{print $2}' /proc/meminfo)
+_sp=0; [ "${_st:-0}" -gt 0 ] && _sp=$(( (_st - _sf) * 100 / _st ))
+# C: free は drvfs で重いので 10s キャッシュ
+_cfc=/tmp/.statusline-cfree
+if [ -f "$_cfc" ] && [ $(( $(date +%s) - $(stat -c %Y "$_cfc" 2>/dev/null || echo 0) )) -lt 10 ]; then
+  _cf=$(cat "$_cfc" 2>/dev/null)
+else
+  _cf=$(df -PBG /mnt/c 2>/dev/null | awk 'NR==2{gsub("G","",$4);print $4}')
+  printf '%s' "$_cf" > "$_cfc" 2>/dev/null
+fi
+_mcol='\033[0;32m'; awk "BEGIN{exit !(${_ma:-9} < 1.5)}" && _mcol='\033[0;31m' || { awk "BEGIN{exit !(${_ma:-9} < 3)}" && _mcol='\033[0;33m'; }
+# 表記規約: 「残」=空き(残り)、「使」=使用中。mem/C: は残り、swap は使用率。(2026-06-12 明確化)
+out+=" ${_mcol}mem残${_ma}G\033[00m"
+[ "$_sp" -gt 0 ] && out+=" $([ "$_sp" -gt 85 ] && printf '\033[0;31m' || printf '\033[0;33m')sw使${_sp}%\033[00m"
+if [ -n "$_cf" ]; then
+  _ccol='\033[0;32m'; { [ "$_cf" -lt 15 ]; } 2>/dev/null && _ccol='\033[0;31m' || { { [ "$_cf" -lt 40 ]; } 2>/dev/null && _ccol='\033[0;33m'; }
+  out+=" ${_ccol}C:残${_cf}G\033[00m"
+fi
+
 [ -n "$last_input" ] && out+="\n\033[0;37m${last_input}\033[00m"
 
 [ -n "$tip" ] && out+="\n\033[01;33m仕事: ${tip}\033[00m"

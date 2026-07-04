@@ -2,6 +2,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "Notification": [
       {
@@ -29,6 +30,19 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/termux-notify.sh"
+          },
+          {
+            "type": "command",
+            "command": "python3 /home/neo/.claude/hooks/detect-fabricated-tool-output.py"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f ~/.config/tts-voice-on && ~/.local/bin/tts-speak-hook.py || true"
           }
         ]
       }
@@ -63,8 +77,17 @@
       }
     }
   },
+  "language": "japanese",
+  "effortLevel": "high",
+  "autoUpdatesChannel": "latest",
+  "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
   "skipDangerousModePermissionPrompt": true,
   "skipAutoPermissionPrompt": true,
+  "voiceEnabled": true,
   "skills": {
     "todo": {
       "type": "prompt",
