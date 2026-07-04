@@ -66,6 +66,36 @@ Web の動作確認 / RPA で **asus-1 (`mcp__playwright-asus1__*`) が繋がら
 
 ローカル Playwright は leo 上で動くので、案内 URL 規則 (= `0.0.0.0` bind / Tailscale ホスト名) と同様に `http://leo:PORT/...` 等へ普通にアクセスできる。スクショ保存先も leo ローカルになり Read で読める利点あり。
 
+#### ローカル Playwright MCP = 常駐 HTTP サーバ (2026-06-22〜)
+
+`mcp__playwright__*` は **stdio ではなく常駐 HTTP サーバ**で動く (stdio は idle で落ち毎回 `/mcp` 手動再接続が要ったため自動化)。
+
+- サービス: `playwright-mcp.service` (systemd user, **enabled + Restart=always + Linger=yes** → boot/未ログインでも常時稼働)。`@playwright/mcp --isolated --headless --port 8931 --host 127.0.0.1 --allowed-hosts "*"` (127.0.0.1 bind = localhost 限定)。
+- 接続: `~/.claude.json` の `playwright` = `{"type":"http","url":"http://127.0.0.1:8931/mcp"}`。**stdio 設定の backup = `~/.claude.json.bak-20260622-211157`**。
+- ツールが `No matching deferred tools` で出ない時 = ハーネスの接続切れ → **`/mcp` で再接続** (server は常駐なので即・確実)。サーバ自体を疑うなら `systemctl --user restart playwright-mcp.service` → 数秒 → `/mcp`。
+- 疎通: `curl -s -XPOST http://127.0.0.1:8931/mcp -H 'Accept: application/json, text/event-stream' -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"x","version":"1"}}}'` → `initialize` result が返れば健全。
+- **同時接続**: `--shared-browser-context` を付けていないので **MCP セッションごとに独立した browser context** (= 並列クライアントは互いに干渉しない)。
+- **⚠ chrome は service cgroup から逃げる** (`session-*.scope` 等)。service の `MemoryMax` は node (~100MB) しか cap しない (残置するが chrome 制御には無力)。
+- **メモリ方針 = 「走査中は絶対 kill しない」**。代わりに2本立て:
+  1. **idle 1h kill** (`playwright-mcp-reaper.sh`, timer 5分毎): output-dir の最新 mtime が 1h 更新されず & chrome RSS>800MB のとき、`/tmp/playwright_chromiumdev_profile` の chrome を profile path で kill (node は残す=接続維持・respawn)。**緊急 RSS kill は持たない** (= active を殺す経路を排除)。kill 直前 5秒 mtime 再チェックで活動あれば中止。
+  2. **admission control** (`journey-tester/preflight-mem.sh`): 観測 launch 前に実行。**MemAvailable < 4GB なら新セッションを作らない** (rec_concurrency=0 → 起動見送り)。空きに応じ `rec_concurrency=(avail-4096)/700` を parallel の同時数上限に使う。**動的** (固定 3GB 上限は廃止)。
+- **idle 検知 = output-dir mtime**: service に `--output-dir /tmp/playwright-mcp-output --save-session --output-max-size 52428800` (操作のたびファイル書込)。`--output-mode file` は付けない (snapshot inline 維持=agent を壊さない)。
+- 容量目安: 実ページ context ≈ 数百MB〜1GB (core 共有で +context ~700MB 見積り)。
+
+---
+
+## asus-1 のファイルは `~/asus1/` で直接読み書きできる (Taildrive 常設マウント, 2026-07-04〜)
+
+leo から asus-1 (Windows) のファイルは、**アップロードも SSH も介さず** `~/asus1/` 配下の普通のローカルファイルとして read-write できる。全プロジェクト共通の常設連携。**RPA (Chrome/Playwright MCP) とは別系統で、それらに依存しない**ので RPA が死んでいても使える。
+
+- **マウント先**: `~/asus1/downloads/` = asus-1 の `C:\Users\ikimo\Downloads` / `~/asus1/ikimo/` = `C:\Users\ikimo` 丸ごと。`cat`/`cp`/Read でそのまま扱える (書込は asus-1 の Windows に即反映)。
+- 実体: Tailscale **Taildrive** → `rclone` WebDAV マウント。`asus1-mount.service` (systemd --user, **enabled + linger + Restart=on-failure** → boot/未ログインでも自動)。
+- ⚠ **プロファイル直下 (`~/asus1/ikimo/`・Downloads root) の `ls` は重い** (エントリ膨大)。目的のサブパスを直接指定すれば一瞬。
+- **不通/stale 時**: `systemctl --user restart asus1-mount.service`。asus-1 疎通は `tailscale status | grep asus-1`。**唯一の弱点は asus-1 の電源OFF/スリープ** (その間だけ不通、復帰で自動回復)。
+- 共有追加: asus-1 で `tailscale drive share <名> "<Windowsパス>"` → サービス restart で `~/asus1/<名>` に出る (ACL は `shares:["*"]` 全許可済みなので変更不要)。
+- asus-1 への SSH は **ユーザー `ikimo`** (`ssh -i ~/.ssh/id_ed25519 ikimo@100.121.58.13`。`neo`/`ikimonogakaru` は拒否。短縮名は名前解決不可 → IP か FQDN)。shell は cmd.exe。
+- **SoT / 詳細手順**: `~/remote-toolkit/docs/taildrive-file-access.md` (アーキ図・ACL要件〈nodeAttrs + grants の app capability 両方必須〉・再起動時挙動・トラブルシュート)。
+
 ---
 
 ## 自律実行モードの使い分け (= 3 つある)
